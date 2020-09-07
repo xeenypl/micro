@@ -1,5 +1,4 @@
-func (self Type) gat(index: Type) Type     {}
-func (self Type) set(index: Type) ref Type {}
+func (self Type) get(index: Type) ref Type {}
 
 func (self Type) add(elem: Type)      Type {}
 func (self Type) subtract(elem: Type) Type {}

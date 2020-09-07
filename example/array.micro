@@ -1,0 +1,9 @@
+export type Array <Type> {
+    buf:    ref Type;
+    lenght: Int;
+}
+
+export func (self Array <Type>) get(index: Int) ref Type {
+    return self.buf + index;
+}
+
