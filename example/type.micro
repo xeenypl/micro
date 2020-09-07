@@ -1,0 +1,10 @@
+
+export type Maybe <Type> enum {
+    just: Type;
+    nothing;
+}
+
+export type Either <TypeA, TypeB> {
+    left: TypeA;
+    rigth: TypeB;
+}

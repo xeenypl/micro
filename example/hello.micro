@@ -1,0 +1,7 @@
+import Cosole.stdout;
+import File.write;
+
+func main () {
+    const out: File = stdout();
+    write(out, "Hello, World!\n");
+}

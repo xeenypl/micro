@@ -1,0 +1,13 @@
+export type List <Type> {
+    buf:    ref Type;
+    lenght: Int;
+}
+
+export func (self List <Type>) get(index: Int) Type {
+    return self.buf + index;
+}
+
+export func (self List <Type>) set(index: Int, element: Type) {
+    var ptr: ref Type = self.buf + index;
+    ptr = element;
+}
