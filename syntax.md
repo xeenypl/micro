@@ -1,3 +1,11 @@
+# comments 
+```
+// one line comment
+/*
+multi line comment
+*/
+```
+
 # only top level
 ## import 
 ```
