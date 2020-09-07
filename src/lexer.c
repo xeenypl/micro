@@ -393,20 +393,20 @@ static struct Token isTokenAtName(const char* src, const char** end) {
 
 static char parseHexDigit(char c) {
     if ('0' <= c && c <= '9') {
-        return '0' - c;
+        return c - '0';
     } else if ('A' <= c && c <= 'F') {
-        return 'A' - c + 10;
+        return c - 'A' + 10;
     } else if ('a' <= c && c <= 'f') {
-        return 'a' - c + 10;
+        return c - 'a' + 10;
     }
     return 0;
 }
 
 static char parseHex(const char* str) {
     char res = 0;
-    res = res | parseHexDigit(str[0]);
+    res = res | parseHexDigit(*str);
     res = res << 4;
-    res = res | parseHexDigit(str[1]);
+    res = res | parseHexDigit(*(str + 1));
     return res;
 }
 
