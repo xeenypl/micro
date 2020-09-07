@@ -1,0 +1,22 @@
+func (self Type) gat(index: Type) Type     {}
+func (self Type) set(index: Type) ref Type {}
+
+func (self Type) add(elem: Type)      Type {}
+func (self Type) subtract(elem: Type) Type {}
+func (self Type) multiply(elem: Type) Type {}
+func (self Type) divide(elem: Type)   Type {}
+func (self Type) modulo(elem: Type)   Type {}
+
+func (self Type) equal(elem: Type)            Bool {}
+func (self Type) lessThen(elem: Type)         Bool {}
+func (self Type) greatThen(elem: Type)        Bool {}
+func (self Type) notEqual(elem: Type)         Bool {}
+func (self Type) lessThenOrEqual(elem: Type)  Bool {}
+func (self Type) greatThenOrEqual(elem: Type) Bool {}
+
+func (self Type) bitwizeNot(elem: Type) Type {}
+func (self Type) bitwizeOr(elem: Type) Type {}
+func (self Type) bitwizeAnd(elem: Type) Type {}
+
+func (self Type) leftShift(elem: Type)  Type {}
+func (self Type) rightShift(elem: Type) Type {}
