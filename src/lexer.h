@@ -29,6 +29,7 @@ struct Token {
         TOKEN_KEYWORD_EXTERNAL,         // external
         TOKEN_KEYWORD_VAR,              // var
         TOKEN_KEYWORD_CONST,            // const
+        TOKEN_KEYWORD_REF,              // ref
         TOKEN_KEYWORD_FUNC,             // func
         TOKEN_KEYWORD_CFUNC,            // cfunc
         TOKEN_KEYWORD_IF,               // if

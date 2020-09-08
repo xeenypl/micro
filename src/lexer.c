@@ -238,6 +238,12 @@ static struct Token isTokenLowerName(const char* src, const char** end) {
         res.value_type = TOKEN_KEYWORD_CONST;            // const
         return res;
     }
+
+    if (isKeyword("ref", src)) {
+        struct Token res = tokenKeyword(src, end, "ref");
+        res.value_type = TOKEN_KEYWORD_REF;              // ref
+        return res;
+    }
     
     if (isKeyword("func", src)) {
         struct Token res = tokenKeyword(src, end, "func");
@@ -1024,6 +1030,9 @@ void printToken(struct Token* token) {
         break;
     case TOKEN_KEYWORD_CONST:
         printf("TOKEN_KEYWORD_CONST\n");
+        break;
+    case TOKEN_KEYWORD_REF:
+        printf("TOKEN_KEYWORD_REF\n");
         break;
     case TOKEN_KEYWORD_FUNC:
         printf("TOKEN_KEYWORD_FUNC\n");
