@@ -45,10 +45,10 @@ static inline void errorIlligalNewLine(void) {
     );
 }
 
-static inline void errorIlligalEmptyName(void) {
+static inline void errorIlligalName(void) {
     fprintf(
         stderr, 
-        "Parsing Error %s:%ld: illigal Enpty name\n", 
+        "Parsing Error %s:%ld: illigal name\n", 
         current_file,
         current_line_number
     );
@@ -356,8 +356,8 @@ static struct Token isTokenLowerName(const char* src, const char** end) {
 }
 
 static struct Token isTokenDotName(const char* src, const char** end) {
-    if (!(isAlfaNumeric(src[1]))) {
-        errorIlligalEmptyName();
+    if (!(isLowerCase(src[1]))) {
+        errorIlligalName();
     }
     size_t length = 1; 
     while (isAlfaNumeric(src[length])) {
@@ -374,8 +374,8 @@ static struct Token isTokenDotName(const char* src, const char** end) {
 }
 
 static struct Token isTokenAtName(const char* src, const char** end) {
-    if (!(isAlfaNumeric(src[1]))) {
-        errorIlligalEmptyName();
+    if (!(isLowerCase(src[1]))) {
+        errorIlligalName();
     }
     size_t length = 1; 
     while (isAlfaNumeric(src[length])) {
@@ -956,263 +956,267 @@ void freeTokens(struct Tokens* tokens) {
     }
 }
 
+void printToken(struct Token* token) {
+    switch (token -> value_type) {
+    case TOKEN_NONE:
+        // that wuld never hpaend.
+        break;
+    
+    case TOKEN_UPPER_NAME:
+        printf(
+            "TOKEN_UPPER_NAME: %.*s\n",
+            (int) token -> value_string.length,
+            token -> value_string.string
+        );
+        break;
+    case TOKEN_LOWER_NAME:
+        printf(
+            "TOKEN_LOWER_NAME: %.*s\n", 
+            (int) token -> value_string.length,
+            token -> value_string.string
+        );
+        break;
+    case TOKEN_DOT_NAME:
+        printf(
+            "TOKEN_DOT_NAME: %.*s\n", 
+            (int) token -> value_string.length,
+            token -> value_string.string
+        );
+        break;
+    case TOKEN_AT_NAME:
+        printf(
+            "TOKEN_DOT_NAME: %.*s\n", 
+            (int) token -> value_string.length,
+            token -> value_string.string
+        );
+        break;
+    case TOKEN_STRING:
+        printf(
+            "TOKEN_STRING: \"%.*s\"\n", 
+            (int) token -> value_string.length,
+            token -> value_string.string
+        );
+        break;
+    
+    case TOKEN_KEYWORD_IMPORT:
+        printf("TOKEN_KEYWORD_IMPORT\n");
+        break;
+    case TOKEN_KEYWORD_AS:
+        printf("TOKEN_KEYWORD_AS\n");
+        break;
+    case TOKEN_KEYWORD_TYPE:
+        printf("TOKEN_KEYWORD_TYPE\n");
+        break;
+    case TOKEN_KEYWORD_ENUM:
+        printf("TOKEN_KEYWORD_ENUM\n");
+        break;
+    case TOKEN_KEYWORD_UNION:
+        printf("TOKEN_KEYWORD_UNION\n");
+        break;
+    case TOKEN_KEYWORD_EXPORT:
+        printf("TOKEN_KEYWORD_EXPORT\n");
+        break;
+    case TOKEN_KEYWORD_EXTERNAL:
+        printf("TOKEN_KEYWORD_EXTERNAL\n");
+        break;
+    case TOKEN_KEYWORD_VAR:
+        printf("TOKEN_KEYWORD_VAR\n");
+        break;
+    case TOKEN_KEYWORD_CONST:
+        printf("TOKEN_KEYWORD_CONST\n");
+        break;
+    case TOKEN_KEYWORD_FUNC:
+        printf("TOKEN_KEYWORD_FUNC\n");
+        break;
+    case TOKEN_KEYWORD_CFUNC:
+        printf("TOKEN_KEYWORD_CFUNC\n");
+        break;
+    case TOKEN_KEYWORD_IF:
+        printf("TOKEN_KEYWORD_IF\n");
+        break;
+    case TOKEN_KEYWORD_ELSE:
+        printf("TOKEN_KEYWORD_ELSE\n");
+        break;
+    case TOKEN_KEYWORD_SWITH:
+        printf("TOKEN_KEYWORD_SWITH\n");
+        break;
+    case TOKEN_KEYWORD_CASE:
+        printf("TOKEN_KEYWORD_CASE\n");
+        break;
+    case TOKEN_KEYWORD_DEFAULT:
+        printf("TOKEN_KEYWORD_DEFAULT\n");
+        break;
+    case TOKEN_KEYWORD_LOOP:
+        printf("TOKEN_KEYWORD_LOOP\n");
+        break;
+    case TOKEN_KEYWORD_BREAK:
+        printf("TOKEN_KEYWORD_BREAK\n");
+        break;
+    case TOKEN_KEYWORD_CONTINUE:
+        printf("TOKEN_KEYWORD_CONTINUE\n");
+        break;
+    case TOKEN_KEYWORD_DO:
+        printf("TOKEN_KEYWORD_DO\n");
+        break;
+    case TOKEN_KEYWORD_WHILE:
+        printf("TOKEN_KEYWORD_WHILE\n");
+        break;
+    case TOKEN_KEYWORD_FOR:
+        printf("TOKEN_KEYWORD_FOR\n");
+        break;
+    case TOKEN_KEYWORD_FOREATCH:
+        printf("TOKEN_KEYWORD_FOREATCH\n");
+        break;
+    case TOKEN_KEYWORD_REPEAD:
+        printf("TOKEN_KEYWORD_REPEAD\n");
+        break;
+    case TOKEN_KEYWORD_RETURN:
+        printf("TOKEN_KEYWORD_RETURN\n");
+        break;
+    case TOKEN_KEYWORD_TEST:
+        printf("TOKEN_KEYWORD_TEST\n");
+        break;
+    
+    case TOKEN_FLOAT:
+        printf("TOKEN_FLOAT: %Lg\n", token -> value_float);
+        break;
+    case TOKEN_INT:
+        printf("TOKEN_INT: %ld\n", token -> value_int);
+        break;
+    
+    case TOKEN_PARENTHESES_OPEN:
+        printf("TOKEN_PARENTHESES_OPEN\n");
+        break;
+    case TOKEN_PARENTHESES_CLOSE:
+        printf("TOKEN_PARENTHESES_CLOSE\n");
+        break;
+    case TOKEN_BRACES_OPEN:
+        printf("TOKEN_BRACES_OPEN\n");
+        break;
+    case TOKEN_BRACES_CLOSE:
+        printf("TOKEN_BRACES_CLOSE\n");
+        break;
+    case TOKEN_BRACKETS_OPEN:
+        printf("TOKEN_BRACKETS_OPEN\n");
+        break;
+    case TOKEN_BRACKETS_CLOSE:
+        printf("TOKEN_BRACKETS_CLOSE\n");
+        break;
+    
+    case TOKEN_SEMICOLON:
+        printf("TOKEN_SEMICOLON\n");
+        break;
+    case TOKEN_COLON:
+        printf("TOKEN_COLON\n");
+        break;
+    case TOKEN_COMMA:
+        printf("TOKEN_COMMA\n");
+        break;
+    
+    case TOKEN_LESS_THEN:
+        printf("TOKEN_LESS_THEN\n");
+        break;
+    case TOKEN_GREATER_THEN:
+        printf("TOKEN_GREATER_THEN\n");
+        break;
+    case TOKEN_LESS_OR_EQUAL_THEN:
+        printf("TOKEN_LESS_OR_EQUAL_THEN\n");
+        break;
+    case TOKEN_GREATER_OR_EQUAL_THEN:
+        printf("TOKEN_GREATER_OR_EQUAL_THEN\n");
+        break;
+    case TOKEN_EQUAL:
+        printf("TOKEN_EQUAL\n");
+        break;
+    case TOKEN_NOT_EQUAL:
+        printf("TOKEN_NOT_EQUAL\n");
+        break;
+    
+    case TOKEN_LOGICAL_NOT:
+        printf("TOKEN_LOGICAL_NOT\n");
+        break;
+    case TOKEN_LOGICAL_OR:
+        printf("TOKEN_LOGICAL_OR\n");
+        break;
+    case TOKEN_LOGICAL_AND:
+        printf("TOKEN_LOGICAL_AND\n");
+        break;
+    
+    case TOKEN_SHIFT_LEFT:
+        printf("TOKEN_SHIFT_LEFT\n");
+        break;
+    case TOKEN_SHIFT_RIGHT:
+        printf("TOKEN_SHIFT_RIGHT\n");
+        break;
+    
+    case TOKEN_BITWIZE_NOT:
+        printf("TOKEN_BITWIZE_NOT\n");
+        break;
+    case TOKEN_BITWIZE_OR:
+        printf("TOKEN_BITWIZE_OR\n");
+        break;
+    case TOKEN_BITWIZE_AND:
+        printf("TOKEN_BITWIZE_AND\n");
+        break;
+    
+    case TOKEN_PLUS:
+        printf("TOKEN_PLUS\n");
+        break;
+    case TOKEN_MINUS:
+        printf("TOKEN_MINUS\n");
+        break;
+    case TOKEN_MULTIPLY:
+        printf("TOKEN_MULTIPLY\n");
+        break;
+    case TOKEN_DIVIDE:
+        printf("TOKEN_DIVIDE\n");
+        break;
+    case TOKEN_MODULO:
+        printf("TOKEN_MODULO\n");
+        break;
+    
+    case TOKEN_ASIGN:
+        printf("TOKEN_ASIGN\n");
+        break;
+    
+    case TOKEN_ASIGN_SHIFT_LEFT:
+        printf("TOKEN_ASIGN_SHIFT_LEFT\n");
+        break;
+    case TOKEN_ASIGN_SHIFT_RIGHT:
+        printf("TOKEN_ASIGN_SHIFT_RIGHT\n");
+        break;
+    
+    case TOKEN_ASIGN_BITWIZE_NOT:
+        printf("TOKEN_ASIGN_BITWIZE_NOT\n");
+        break;
+    case TOKEN_ASIGN_BITWIZE_OR:
+        printf("TOKEN_ASIGN_BITWIZE_OR\n");
+        break;
+    case TOKEN_ASIGN_BITWIZE_AND:
+        printf("TOKEN_ASIGN_BITWIZE_AND\n");
+        break;
+    
+    case TOKEN_ASIGN_PLUS:
+        printf("TOKEN_ASIGN_PLUS\n");
+        break;
+    case TOKEN_ASIGN_MINUS:
+        printf("TOKEN_ASIGN_MINUS\n");
+        break;
+    case TOKEN_ASIGN_MULTIPLY:
+        printf("TOKEN_ASIGN_MULTIPLY\n");
+        break;
+    case TOKEN_ASIGN_DIVIDE:
+        printf("TOKEN_ASIGN_DIVIDE\n");
+        break;
+    case TOKEN_ASIGN_MODULO:
+        printf("TOKEN_ASIGN_MODULO\n");
+        break;
+    }
+}
+
 void printTokens(struct Tokens* tokens) {
     while (true) {
-        switch (tokens -> token.value_type) {
-        case TOKEN_NONE:
-            // that wuld never hpaend.
-            break;
-
-        case TOKEN_UPPER_NAME:
-            printf(
-                "TOKEN_UPPER_NAME: %.*s\n",
-                (int) tokens -> token.value_string.length,
-                tokens -> token.value_string.string
-            );
-            break;
-        case TOKEN_LOWER_NAME:
-            printf(
-                "TOKEN_LOWER_NAME: %.*s\n", 
-                (int) tokens -> token.value_string.length,
-                tokens -> token.value_string.string
-            );
-            break;
-        case TOKEN_DOT_NAME:
-            printf(
-                "TOKEN_DOT_NAME: %.*s\n", 
-                (int) tokens -> token.value_string.length,
-                tokens -> token.value_string.string
-            );
-            break;
-        case TOKEN_AT_NAME:
-            printf(
-                "TOKEN_DOT_NAME: %.*s\n", 
-                (int) tokens -> token.value_string.length,
-                tokens -> token.value_string.string
-            );
-            break;
-        case TOKEN_STRING:
-            printf(
-                "TOKEN_STRING: \"%.*s\"\n", 
-                (int) tokens -> token.value_string.length,
-                tokens -> token.value_string.string
-            );
-            break;
-
-        case TOKEN_KEYWORD_IMPORT:
-            printf("TOKEN_KEYWORD_IMPORT\n");
-            break;
-        case TOKEN_KEYWORD_AS:
-            printf("TOKEN_KEYWORD_AS\n");
-            break;
-        case TOKEN_KEYWORD_TYPE:
-            printf("TOKEN_KEYWORD_TYPE\n");
-            break;
-        case TOKEN_KEYWORD_ENUM:
-            printf("TOKEN_KEYWORD_ENUM\n");
-            break;
-        case TOKEN_KEYWORD_UNION:
-            printf("TOKEN_KEYWORD_UNION\n");
-            break;
-        case TOKEN_KEYWORD_EXPORT:
-            printf("TOKEN_KEYWORD_EXPORT\n");
-            break;
-        case TOKEN_KEYWORD_EXTERNAL:
-            printf("TOKEN_KEYWORD_EXTERNAL\n");
-            break;
-        case TOKEN_KEYWORD_VAR:
-            printf("TOKEN_KEYWORD_VAR\n");
-            break;
-        case TOKEN_KEYWORD_CONST:
-            printf("TOKEN_KEYWORD_CONST\n");
-            break;
-        case TOKEN_KEYWORD_FUNC:
-            printf("TOKEN_KEYWORD_FUNC\n");
-            break;
-        case TOKEN_KEYWORD_CFUNC:
-            printf("TOKEN_KEYWORD_CFUNC\n");
-            break;
-        case TOKEN_KEYWORD_IF:
-            printf("TOKEN_KEYWORD_IF\n");
-            break;
-        case TOKEN_KEYWORD_ELSE:
-            printf("TOKEN_KEYWORD_ELSE\n");
-            break;
-        case TOKEN_KEYWORD_SWITH:
-            printf("TOKEN_KEYWORD_SWITH\n");
-            break;
-        case TOKEN_KEYWORD_CASE:
-            printf("TOKEN_KEYWORD_CASE\n");
-            break;
-        case TOKEN_KEYWORD_DEFAULT:
-            printf("TOKEN_KEYWORD_DEFAULT\n");
-            break;
-        case TOKEN_KEYWORD_LOOP:
-            printf("TOKEN_KEYWORD_LOOP\n");
-            break;
-        case TOKEN_KEYWORD_BREAK:
-            printf("TOKEN_KEYWORD_BREAK\n");
-            break;
-        case TOKEN_KEYWORD_CONTINUE:
-            printf("TOKEN_KEYWORD_CONTINUE\n");
-            break;
-        case TOKEN_KEYWORD_DO:
-            printf("TOKEN_KEYWORD_DO\n");
-            break;
-        case TOKEN_KEYWORD_WHILE:
-            printf("TOKEN_KEYWORD_WHILE\n");
-            break;
-        case TOKEN_KEYWORD_FOR:
-            printf("TOKEN_KEYWORD_FOR\n");
-            break;
-        case TOKEN_KEYWORD_FOREATCH:
-            printf("TOKEN_KEYWORD_FOREATCH\n");
-            break;
-        case TOKEN_KEYWORD_REPEAD:
-            printf("TOKEN_KEYWORD_REPEAD\n");
-            break;
-        case TOKEN_KEYWORD_RETURN:
-            printf("TOKEN_KEYWORD_RETURN\n");
-            break;
-        case TOKEN_KEYWORD_TEST:
-            printf("TOKEN_KEYWORD_TEST\n");
-            break;
-
-        case TOKEN_FLOAT:
-            printf("TOKEN_FLOAT: %Lg\n", tokens -> token.value_float);
-            break;
-        case TOKEN_INT:
-            printf("TOKEN_INT: %ld\n", tokens -> token.value_int);
-            break;
-
-        case TOKEN_PARENTHESES_OPEN:
-            printf("TOKEN_PARENTHESES_OPEN\n");
-            break;
-        case TOKEN_PARENTHESES_CLOSE:
-            printf("TOKEN_PARENTHESES_CLOSE\n");
-            break;
-        case TOKEN_BRACES_OPEN:
-            printf("TOKEN_BRACES_OPEN\n");
-            break;
-        case TOKEN_BRACES_CLOSE:
-            printf("TOKEN_BRACES_CLOSE\n");
-            break;
-        case TOKEN_BRACKETS_OPEN:
-            printf("TOKEN_BRACKETS_OPEN\n");
-            break;
-        case TOKEN_BRACKETS_CLOSE:
-            printf("TOKEN_BRACKETS_CLOSE\n");
-            break;
-
-        case TOKEN_SEMICOLON:
-            printf("TOKEN_SEMICOLON\n");
-            break;
-        case TOKEN_COLON:
-            printf("TOKEN_COLON\n");
-            break;
-        case TOKEN_COMMA:
-            printf("TOKEN_COMMA\n");
-            break;
-
-        case TOKEN_LESS_THEN:
-            printf("TOKEN_LESS_THEN\n");
-            break;
-        case TOKEN_GREATER_THEN:
-            printf("TOKEN_GREATER_THEN\n");
-            break;
-        case TOKEN_LESS_OR_EQUAL_THEN:
-            printf("TOKEN_LESS_OR_EQUAL_THEN\n");
-            break;
-        case TOKEN_GREATER_OR_EQUAL_THEN:
-            printf("TOKEN_GREATER_OR_EQUAL_THEN\n");
-            break;
-        case TOKEN_EQUAL:
-            printf("TOKEN_EQUAL\n");
-            break;
-        case TOKEN_NOT_EQUAL:
-            printf("TOKEN_NOT_EQUAL\n");
-            break;
-
-        case TOKEN_LOGICAL_NOT:
-            printf("TOKEN_LOGICAL_NOT\n");
-            break;
-        case TOKEN_LOGICAL_OR:
-            printf("TOKEN_LOGICAL_OR\n");
-            break;
-        case TOKEN_LOGICAL_AND:
-            printf("TOKEN_LOGICAL_AND\n");
-            break;
-
-        case TOKEN_SHIFT_LEFT:
-            printf("TOKEN_SHIFT_LEFT\n");
-            break;
-        case TOKEN_SHIFT_RIGHT:
-            printf("TOKEN_SHIFT_RIGHT\n");
-            break;
-
-        case TOKEN_BITWIZE_NOT:
-            printf("TOKEN_BITWIZE_NOT\n");
-            break;
-        case TOKEN_BITWIZE_OR:
-            printf("TOKEN_BITWIZE_OR\n");
-            break;
-        case TOKEN_BITWIZE_AND:
-            printf("TOKEN_BITWIZE_AND\n");
-            break;
-
-        case TOKEN_PLUS:
-            printf("TOKEN_PLUS\n");
-            break;
-        case TOKEN_MINUS:
-            printf("TOKEN_MINUS\n");
-            break;
-        case TOKEN_MULTIPLY:
-            printf("TOKEN_MULTIPLY\n");
-            break;
-        case TOKEN_DIVIDE:
-            printf("TOKEN_DIVIDE\n");
-            break;
-        case TOKEN_MODULO:
-            printf("TOKEN_MODULO\n");
-            break;
-
-        case TOKEN_ASIGN:
-            printf("TOKEN_ASIGN\n");
-            break;
-
-        case TOKEN_ASIGN_SHIFT_LEFT:
-            printf("TOKEN_ASIGN_SHIFT_LEFT\n");
-            break;
-        case TOKEN_ASIGN_SHIFT_RIGHT:
-            printf("TOKEN_ASIGN_SHIFT_RIGHT\n");
-            break;
-
-        case TOKEN_ASIGN_BITWIZE_NOT:
-            printf("TOKEN_ASIGN_BITWIZE_NOT\n");
-            break;
-        case TOKEN_ASIGN_BITWIZE_OR:
-            printf("TOKEN_ASIGN_BITWIZE_OR\n");
-            break;
-        case TOKEN_ASIGN_BITWIZE_AND:
-            printf("TOKEN_ASIGN_BITWIZE_AND\n");
-            break;
-
-        case TOKEN_ASIGN_PLUS:
-            printf("TOKEN_ASIGN_PLUS\n");
-            break;
-        case TOKEN_ASIGN_MINUS:
-            printf("TOKEN_ASIGN_MINUS\n");
-            break;
-        case TOKEN_ASIGN_MULTIPLY:
-            printf("TOKEN_ASIGN_MULTIPLY\n");
-            break;
-        case TOKEN_ASIGN_DIVIDE:
-            printf("TOKEN_ASIGN_DIVIDE\n");
-            break;
-        case TOKEN_ASIGN_MODULO:
-            printf("TOKEN_ASIGN_MODULO\n");
-            break;
-        }
+        printToken(&tokens -> token);
         if (tokens -> next == NULL) {
             break;
         }

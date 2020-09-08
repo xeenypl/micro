@@ -3,26 +3,8 @@
 
 #include <stddef.h>
 #include <string.h>
-#include <stdint.h>
 
-struct String {
-    char*  string;
-    size_t length;
-};
-
-static inline struct String newString(const char* str) {
-    return (struct String) {
-        .string = (char*)str,
-        .length = strlen(str)
-    };
-}
-
-static inline struct String newStringL(const char* str, size_t len) {
-    return (struct String) {
-        .string = (char*)str,
-        .length = len
-    };
-}
+#include "string.h"
 
 struct Token {
     char* file_name;
@@ -132,6 +114,7 @@ struct Tokens {
 
 struct Tokens* getTokens(const char* src, const char* file_name);
 void freeTokens(struct Tokens* tokens);
+void printToken(struct Token* token);
 void printTokens(struct Tokens* tokens);
 
 #endif
