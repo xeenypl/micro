@@ -69,11 +69,6 @@ const NameType = <expretion>;
 ```
 
 # only in block
-## let
-```
-let name = <expretion>;
-```
-
 ## if
 ```
 if () {
@@ -130,4 +125,28 @@ default:
 ## return
 ```
 return <expretion>;
+```
+
+# operators
+## arytmetic
+```
++  -  *  /  %
++= -= *= /= %=
+```
+## logical
+```
+! || && < > <= >= == !=
+```
+## bitwize
+```
+|  &  ~  <<  >>
+|= &= ~= <<= >>=
+```
+## array
+```
+[]
+```
+## casting
+```
+ref Int <expretion>
 ```
