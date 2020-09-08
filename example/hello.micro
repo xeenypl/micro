@@ -2,5 +2,5 @@ import Cosole.stdout;
 import File.write;
 
 func main () {
-    write(stdout, "Hello, World!\n");
+    write(stdout, "Hello, \"World!\n");
 }
