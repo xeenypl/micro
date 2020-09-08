@@ -57,7 +57,7 @@ test {
 }
 ```
 
-# top lever and block level
+# only in block
 ## var
 ```
 var name: Type = <expretion>;
@@ -68,7 +68,6 @@ var name: Type = <expretion>;
 const NameType = <expretion>;
 ```
 
-# only in block
 ## if
 ```
 if () {
