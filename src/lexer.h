@@ -29,7 +29,7 @@ enum TokenType {
     TOKEN_KEYWORD_CFUNC,            // cfunc
     TOKEN_KEYWORD_IF,               // if
     TOKEN_KEYWORD_ELSE,             // else
-    TOKEN_KEYWORD_SWITH,            // swith
+    TOKEN_KEYWORD_SWITCH,           // switch
     TOKEN_KEYWORD_CASE,             // case
     TOKEN_KEYWORD_DEFAULT,          // default
     TOKEN_KEYWORD_LOOP,             // loop
@@ -110,14 +110,14 @@ struct Token {
     };
 };
 
-struct Tokens {
-    struct Token   token;
-    struct Tokens* next;
+struct TokenList {
+    struct Token      token;
+    struct TokenList* next;
 };
 
-struct Tokens* getTokens(const char* src, const char* file_name);
-void freeTokens(struct Tokens* tokens);
+struct TokenList* getTokens(const char* src, const char* file_name);
+void freeTokens(struct TokenList* tokens);
 void printToken(struct Token* token);
-void printTokens(struct Tokens* tokens);
+void printTokens(struct TokenList* tokens);
 
 #endif

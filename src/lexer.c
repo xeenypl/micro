@@ -269,9 +269,9 @@ static struct Token isTokenLowerName(const char* src, const char** end) {
         return res;
     }
     
-    if (isKeyword("swith", src)) {
-        struct Token res = tokenKeyword(src, end, "swith");
-        res.value_type = TOKEN_KEYWORD_SWITH;            // swith
+    if (isKeyword("switch", src)) {
+        struct Token res = tokenKeyword(src, end, "switch");
+        res.value_type = TOKEN_KEYWORD_SWITCH;           // switch
         return res;
     }
     
@@ -899,17 +899,17 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
     return (struct Token) { 0 }; 
 }
 
-static void appendToken(struct Tokens **end_of_tokens, struct Token new) {
+static void appendToken(struct TokenList **end_of_tokens, struct Token new) {
     (*end_of_tokens) -> token = new;
-    (*end_of_tokens) -> next = memoryAlloc(sizeof(struct Tokens));
+    (*end_of_tokens) -> next = memoryAlloc(sizeof(struct TokenList));
     (*end_of_tokens) = (*end_of_tokens) -> next;
 }
 
-struct Tokens* getTokens(const char* src, const char* file_name) {
+struct TokenList* getTokens(const char* src, const char* file_name) {
     current_line_number = 1;
     current_file = file_name;
-    struct Tokens* res = memoryAlloc(sizeof(struct Tokens));
-    struct Tokens* current = res;
+    struct TokenList* res = memoryAlloc(sizeof(struct TokenList));
+    struct TokenList* current = res;
     while (true) {
         skipComments(&src);
         if ((*src) == 0) {
@@ -950,13 +950,13 @@ struct Tokens* getTokens(const char* src, const char* file_name) {
     return res;
 }
 
-void freeTokens(struct Tokens* tokens) {
+void freeTokens(struct TokenList* tokens) {
     while (true) {
         if (tokens -> next == NULL) {
             memoryFree(tokens);
             break;
         }
-        struct Tokens* old = tokens;
+        struct TokenList* old = tokens;
         tokens = tokens -> next;
         memoryFree(old);
     }
@@ -1046,8 +1046,8 @@ void printToken(struct Token* token) {
     case TOKEN_KEYWORD_ELSE:
         printf("TOKEN_KEYWORD_ELSE\n");
         break;
-    case TOKEN_KEYWORD_SWITH:
-        printf("TOKEN_KEYWORD_SWITH\n");
+    case TOKEN_KEYWORD_SWITCH:
+        printf("TOKEN_KEYWORD_SWITCH\n");
         break;
     case TOKEN_KEYWORD_CASE:
         printf("TOKEN_KEYWORD_CASE\n");
@@ -1223,7 +1223,7 @@ void printToken(struct Token* token) {
     }
 }
 
-void printTokens(struct Tokens* tokens) {
+void printTokens(struct TokenList* tokens) {
     while (true) {
         printToken(&tokens -> token);
         if (tokens -> next == NULL) {
