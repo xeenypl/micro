@@ -19,5 +19,9 @@ func (self Type) bitwizeNot(elem: Type) Type {}
 func (self Type) bitwizeOr(elem: Type) Type {}
 func (self Type) bitwizeAnd(elem: Type) Type {}
 
+func (self Type) logicalNot(elem: Type) Bool {}
+func (self Type) logicalOr(elem: Type)  Bool {}
+func (self Type) logicalAnd(elem: Type) Bool {}
+
 func (self Type) leftShift(elem: Type)  Type {}
 func (self Type) rightShift(elem: Type) Type {}
