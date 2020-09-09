@@ -105,7 +105,7 @@ default:
 
 ## for
 ```
-@label for (i: <expretion>) {
+@label for (var i: Type <expretion>) {
 }
 ```
 
@@ -141,5 +141,5 @@ return <expretion>;
 ```
 ## casting
 ```
-ref Int <expretion>
+<expretion> as Int
 ```
