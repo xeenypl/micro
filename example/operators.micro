@@ -1,6 +1,8 @@
-func (self Type) get(index: Type) ref Type {}
+func (self Type) index(index: Type) ref Type {}
 
-func (self Type) convert() Type {}
+func (self Type) cast() Type {}
+
+func (self Type) next() Type {}
 
 func (self Type) add(elem: Type)      Type {}
 func (self Type) subtract(elem: Type) Type {}
