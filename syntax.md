@@ -105,13 +105,7 @@ default:
 
 ## for
 ```
-@label for (let i = 1; i < 10; i += 1) {
-}
-```
-
-## foreatch
-```
-@label foreatch (x: <expretion>) {
+@label for (i: <expretion>) {
 }
 ```
 
