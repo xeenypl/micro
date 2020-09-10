@@ -16,10 +16,6 @@ void* memoryAlloc(size_t size) {
     return res;
 }
 
-void memoryFree(void* mem) {
-    free(mem);
-}
-
 void* memoryRealloc(void* mem, size_t size) {
     void* res = realloc(mem, size);
     if (res == NULL) {
@@ -27,6 +23,10 @@ void* memoryRealloc(void* mem, size_t size) {
         exit(EXIT_FAILURE);
     }
     return res;
+}
+
+void memoryFree(void* mem) {
+    free(mem);
 }
 
 char* memoryStringnDup(const char *str) {

@@ -155,7 +155,7 @@ static struct Token isTokenNumber(const char* src, const char** end) {
             .file_name   = (char*)current_file,
             .line_number = current_line_number,
             .row_string  = newStringL(src, ((*end) - src)),
-            .value_type  = TOKEN_FLOAT,
+            .type  = TOKEN_FLOAT,
             .value_float = res
         };
     }
@@ -163,7 +163,7 @@ static struct Token isTokenNumber(const char* src, const char** end) {
         .file_name   = (char*)current_file,
         .line_number = current_line_number,
         .row_string  = newStringL(src, ((*end) - src)),
-        .value_type  = TOKEN_INT,
+        .type  = TOKEN_INT,
         .value_int   = res
     };
 }
@@ -179,7 +179,7 @@ static struct Token isTokenUpperName(char* src, const char** end) {
         .file_name    = (char*)current_file,
         .line_number  = current_line_number,
         .row_string   = newStringL(src, length),
-        .value_type   = TOKEN_UPPER_NAME,
+        .type   = TOKEN_UPPER_NAME,
         .value_string = newStringL(src, length) 
     };
 }
@@ -187,163 +187,169 @@ static struct Token isTokenUpperName(char* src, const char** end) {
 static struct Token isTokenLowerName(const char* src, const char** end) {
     if (isKeyword("import", src)) {
         struct Token res = tokenKeyword(src, end, "import");
-        res.value_type = TOKEN_KEYWORD_IMPORT;           // import
+        res.type = TOKEN_KEYWORD_IMPORT;           // import
         return res;
     }  
     
     if (isKeyword("as", src)) {
         struct Token res = tokenKeyword(src, end, "as");
-        res.value_type = TOKEN_KEYWORD_AS;               // as
+        res.type = TOKEN_KEYWORD_AS;               // as
         return res;
     }
     
     if (isKeyword("type", src)) {
         struct Token res = tokenKeyword(src, end, "type");
-        res.value_type = TOKEN_KEYWORD_TYPE;             // type
+        res.type = TOKEN_KEYWORD_TYPE;             // type
         return res;
     }
     
     if (isKeyword("enum", src)) {
         struct Token res = tokenKeyword(src, end, "enum");
-        res.value_type = TOKEN_KEYWORD_ENUM;             // enum
+        res.type = TOKEN_KEYWORD_ENUM;             // enum
         return res;
     }
     
     if (isKeyword("union", src)) {
         struct Token res = tokenKeyword(src, end, "union");
-        res.value_type = TOKEN_KEYWORD_UNION;            // union
+        res.type = TOKEN_KEYWORD_UNION;            // union
         return res;
     }
     
     if (isKeyword("export", src)) {
         struct Token res = tokenKeyword(src, end, "export");
-        res.value_type = TOKEN_KEYWORD_EXPORT;           // export
+        res.type = TOKEN_KEYWORD_EXPORT;           // export
         return res;
     }
     
     if (isKeyword("external", src)) {
         struct Token res = tokenKeyword(src, end, "external");
-        res.value_type = TOKEN_KEYWORD_EXTERNAL;         // external
+        res.type = TOKEN_KEYWORD_EXTERNAL;         // external
         return res;
     }
     
     if (isKeyword("var", src)) {
         struct Token res = tokenKeyword(src, end, "var");
-        res.value_type = TOKEN_KEYWORD_VAR;              // var
+        res.type = TOKEN_KEYWORD_VAR;              // var
         return res;
     }
     
     if (isKeyword("const", src)) {
         struct Token res = tokenKeyword(src, end, "const");
-        res.value_type = TOKEN_KEYWORD_CONST;            // const
+        res.type = TOKEN_KEYWORD_CONST;            // const
         return res;
     }
 
     if (isKeyword("ref", src)) {
         struct Token res = tokenKeyword(src, end, "ref");
-        res.value_type = TOKEN_KEYWORD_REF;              // ref
+        res.type = TOKEN_KEYWORD_REF;              // ref
+        return res;
+    }
+
+    if (isKeyword("deref", src)) {
+        struct Token res = tokenKeyword(src, end, "deref");
+        res.type = TOKEN_KEYWORD_DEREF;            // deref
         return res;
     }
     
     if (isKeyword("func", src)) {
         struct Token res = tokenKeyword(src, end, "func");
-        res.value_type = TOKEN_KEYWORD_FUNC;             // func
+        res.type = TOKEN_KEYWORD_FUNC;             // func
         return res;
     }
     
     if (isKeyword("cfunc", src)) {
         struct Token res = tokenKeyword(src, end, "cfunc");
-        res.value_type = TOKEN_KEYWORD_CFUNC;            // cfunc
+        res.type = TOKEN_KEYWORD_CFUNC;            // cfunc
         return res;
     }
     
     if (isKeyword("if", src)) {
         struct Token res = tokenKeyword(src, end, "if");
-        res.value_type = TOKEN_KEYWORD_IF;               // if
+        res.type = TOKEN_KEYWORD_IF;               // if
         return res;
     }
     
     if (isKeyword("else", src)) {
         struct Token res = tokenKeyword(src, end, "else");
-        res.value_type = TOKEN_KEYWORD_ELSE;             // else
+        res.type = TOKEN_KEYWORD_ELSE;             // else
         return res;
     }
     
     if (isKeyword("switch", src)) {
         struct Token res = tokenKeyword(src, end, "switch");
-        res.value_type = TOKEN_KEYWORD_SWITCH;           // switch
+        res.type = TOKEN_KEYWORD_SWITCH;           // switch
         return res;
     }
     
     if (isKeyword("case", src)) {
         struct Token res = tokenKeyword(src, end, "case");
-        res.value_type = TOKEN_KEYWORD_CASE;             // case
+        res.type = TOKEN_KEYWORD_CASE;             // case
         return res;
     }
     
     if (isKeyword("default", src)) {
         struct Token res = tokenKeyword(src, end, "default");
-        res.value_type = TOKEN_KEYWORD_DEFAULT;          // default
+        res.type = TOKEN_KEYWORD_DEFAULT;          // default
         return res;
     }
     
     if (isKeyword("loop", src)) {
         struct Token res = tokenKeyword(src, end, "loop");
-        res.value_type = TOKEN_KEYWORD_LOOP;             // loop
+        res.type = TOKEN_KEYWORD_LOOP;             // loop
         return res;
     }
     
     if (isKeyword("break", src)) {
         struct Token res = tokenKeyword(src, end, "break");
-        res.value_type = TOKEN_KEYWORD_BREAK;            // break
+        res.type = TOKEN_KEYWORD_BREAK;            // break
         return res;
     }
     
     if (isKeyword("continue", src)) {
         struct Token res = tokenKeyword(src, end, "continue");
-        res.value_type = TOKEN_KEYWORD_CONTINUE;         // continue
+        res.type = TOKEN_KEYWORD_CONTINUE;         // continue
         return res;
     }
     
     if (isKeyword("do", src)) {
         struct Token res = tokenKeyword(src, end, "do");
-        res.value_type = TOKEN_KEYWORD_DO;               // do
+        res.type = TOKEN_KEYWORD_DO;               // do
         return res;
     }
     
     if (isKeyword("while", src)) {
         struct Token res = tokenKeyword(src, end, "while");
-        res.value_type = TOKEN_KEYWORD_WHILE;            // while
+        res.type = TOKEN_KEYWORD_WHILE;            // while
         return res;
     }
     
     if (isKeyword("for", src)) {
         struct Token res = tokenKeyword(src, end, "for");
-        res.value_type = TOKEN_KEYWORD_FOR;              // for
+        res.type = TOKEN_KEYWORD_FOR;              // for
         return res;
     }
     
-    if (isKeyword("foreatch", src)) {
-        struct Token res = tokenKeyword(src, end, "foreatch");
-        res.value_type = TOKEN_KEYWORD_FOREATCH;         // foreatch
+    if (isKeyword("in", src)) {
+        struct Token res = tokenKeyword(src, end, "in");
+        res.type = TOKEN_KEYWORD_IN;               // in
         return res;
     }
     
     if (isKeyword("repead", src)) {
         struct Token res = tokenKeyword(src, end, "repead");
-        res.value_type = TOKEN_KEYWORD_REPEAD;           // repead
+        res.type = TOKEN_KEYWORD_REPEAD;           // repead
         return res;
     }
     
     if (isKeyword("return", src)) {
         struct Token res = tokenKeyword(src, end, "return");
-        res.value_type = TOKEN_KEYWORD_RETURN;           // return
+        res.type = TOKEN_KEYWORD_RETURN;           // return
         return res;
     }
     
     if (isKeyword("test", src)) {
         struct Token res = tokenKeyword(src, end, "test");
-        res.value_type = TOKEN_KEYWORD_TEST;             // test
+        res.type = TOKEN_KEYWORD_TEST;             // test
         return res;
     }
 
@@ -356,15 +362,12 @@ static struct Token isTokenLowerName(const char* src, const char** end) {
         .file_name    = (char*)current_file,
         .line_number  = current_line_number,
         .row_string   = newStringL(src, length),
-        .value_type   = TOKEN_LOWER_NAME,
+        .type   = TOKEN_LOWER_NAME,
         .value_string = newStringL(src, length) 
     };
 }
 
 static struct Token isTokenDotName(const char* src, const char** end) {
-    if (!(isLowerCase(src[1]))) {
-        errorIlligalName();
-    }
     size_t length = 1; 
     while (isAlfaNumeric(src[length])) {
         length++;
@@ -374,7 +377,7 @@ static struct Token isTokenDotName(const char* src, const char** end) {
         .file_name    = (char*)current_file,
         .line_number  = current_line_number,
         .row_string   = newStringL(src, length),
-        .value_type   = TOKEN_DOT_NAME,
+        .type   = TOKEN_DOT_NAME,
         .value_string = newStringL(src, length) 
     };
 }
@@ -392,7 +395,7 @@ static struct Token isTokenAtName(const char* src, const char** end) {
         .file_name    = (char*)current_file,
         .line_number  = current_line_number,
         .row_string   = newStringL(src, length),
-        .value_type   = TOKEN_DOT_NAME,
+        .type   = TOKEN_DOT_NAME,
         .value_string = newStringL(src, length) 
     };
 }
@@ -424,6 +427,12 @@ static struct String escape(const char* str, size_t length) {
             switch (str[++i]) {
             case '\\':
                 res[res_length++] = '\\';
+                break;
+            case '"':
+                res[res_length++] = '"';
+                break;
+            case '\'':
+                res[res_length++] = '\'';
                 break;
             case 'b':
                 res[res_length++] = '\b';
@@ -489,7 +498,7 @@ static struct Token isTokenString(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, length),
-            .value_type   = TOKEN_STRING,
+            .type   = TOKEN_STRING,
             .value_string = res 
         };
     }
@@ -504,7 +513,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_PARENTHESES_OPEN,
+            .type   = TOKEN_PARENTHESES_OPEN,
             .value_string = newStringL(src, 1),
         };
     case ')':
@@ -513,7 +522,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_PARENTHESES_CLOSE,
+            .type   = TOKEN_PARENTHESES_CLOSE,
             .value_string = newStringL(src, 1),
         };
     case '{':
@@ -522,7 +531,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_BRACES_OPEN,
+            .type   = TOKEN_BRACES_OPEN,
             .value_string = newStringL(src, 1),
         };
     case '}':
@@ -531,7 +540,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_BRACES_CLOSE,
+            .type   = TOKEN_BRACES_CLOSE,
             .value_string = newStringL(src, 1),
         };
     case '[':
@@ -540,7 +549,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_BRACKETS_OPEN,
+            .type   = TOKEN_BRACKETS_OPEN,
             .value_string = newStringL(src, 1),
         };
     case ']':
@@ -549,7 +558,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_BRACKETS_CLOSE,
+            .type   = TOKEN_BRACKETS_CLOSE,
             .value_string = newStringL(src, 1),
         };
     case ';':
@@ -558,7 +567,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_SEMICOLON,
+            .type   = TOKEN_SEMICOLON,
             .value_string = newStringL(src, 1),
         };
     case ':':
@@ -567,7 +576,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_COLON,
+            .type   = TOKEN_COLON,
             .value_string = newStringL(src, 1),
         };
     case ',':
@@ -576,7 +585,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
             .file_name    = (char*)current_file,
             .line_number  = current_line_number,
             .row_string   = newStringL(src, 1),
-            .value_type   = TOKEN_COMMA,
+            .type   = TOKEN_COMMA,
             .value_string = newStringL(src, 1),
         };
     case '<':
@@ -587,7 +596,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_LESS_OR_EQUAL_THEN,
+                .type   = TOKEN_LESS_OR_EQUAL_THEN,
                 .value_string = newStringL(src, 2),
             };
         case '<':
@@ -598,7 +607,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                     .file_name    = (char*)current_file,
                     .line_number  = current_line_number,
                     .row_string   = newStringL(src, 3),
-                    .value_type   = TOKEN_ASIGN_SHIFT_LEFT,
+                    .type   = TOKEN_ASIGN_SHIFT_LEFT,
                     .value_string = newStringL(src, 3),
                 };
             default:
@@ -607,7 +616,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                     .file_name    = (char*)current_file,
                     .line_number  = current_line_number,
                     .row_string   = newStringL(src, 1),
-                    .value_type   = TOKEN_SHIFT_LEFT,
+                    .type   = TOKEN_SHIFT_LEFT,
                     .value_string = newStringL(src, 1),
                 };
             }
@@ -617,7 +626,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_LESS_THEN,
+                .type   = TOKEN_CHEVRONS_OPEN,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -629,7 +638,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_GREATER_OR_EQUAL_THEN,
+                .type   = TOKEN_GREATER_OR_EQUAL_THEN,
                 .value_string = newStringL(src, 2),
             };
         case '>':
@@ -640,7 +649,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                     .file_name    = (char*)current_file,
                     .line_number  = current_line_number,
                     .row_string   = newStringL(src, 3),
-                    .value_type   = TOKEN_ASIGN_SHIFT_RIGHT,
+                    .type   = TOKEN_ASIGN_SHIFT_RIGHT,
                     .value_string = newStringL(src, 3),
                 };
             default:
@@ -649,7 +658,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                     .file_name    = (char*)current_file,
                     .line_number  = current_line_number,
                     .row_string   = newStringL(src, 1),
-                    .value_type   = TOKEN_SHIFT_RIGHT,
+                    .type   = TOKEN_SHIFT_RIGHT,
                     .value_string = newStringL(src, 1),
                 };
             }
@@ -659,7 +668,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_GREATER_THEN,
+                .type   = TOKEN_CHEVRONS_CLOSE,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -672,7 +681,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_EQUAL,
+                .type   = TOKEN_EQUAL,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -681,7 +690,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_ASIGN,
+                .type   = TOKEN_ASIGN,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -693,7 +702,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_NOT_EQUAL,
+                .type   = TOKEN_NOT_EQUAL,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -702,7 +711,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_LOGICAL_NOT,
+                .type   = TOKEN_LOGICAL_NOT,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -714,7 +723,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_BITWIZE_NOT,
+                .type   = TOKEN_ASIGN_BITWIZE_NOT,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -723,7 +732,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_BITWIZE_NOT,
+                .type   = TOKEN_BITWIZE_NOT,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -735,7 +744,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_LOGICAL_OR,
+                .type   = TOKEN_LOGICAL_OR,
                 .value_string = newStringL(src, 2),
             };
         case '=':
@@ -744,7 +753,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_BITWIZE_OR,
+                .type   = TOKEN_ASIGN_BITWIZE_OR,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -753,7 +762,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_BITWIZE_OR,
+                .type   = TOKEN_BITWIZE_OR,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -765,7 +774,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_LOGICAL_AND,
+                .type   = TOKEN_LOGICAL_AND,
                 .value_string = newStringL(src, 2),
             };
         case '=':
@@ -774,7 +783,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_BITWIZE_AND,
+                .type   = TOKEN_ASIGN_BITWIZE_AND,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -783,7 +792,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_BITWIZE_AND,
+                .type   = TOKEN_BITWIZE_AND,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -795,7 +804,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_PLUS,
+                .type   = TOKEN_ASIGN_PLUS,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -804,7 +813,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_PLUS,
+                .type   = TOKEN_PLUS,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -816,7 +825,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_MINUS,
+                .type   = TOKEN_ASIGN_MINUS,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -825,7 +834,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_MINUS,
+                .type   = TOKEN_MINUS,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -837,7 +846,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_MULTIPLY,
+                .type   = TOKEN_ASIGN_MULTIPLY,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -846,7 +855,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_MULTIPLY,
+                .type   = TOKEN_MULTIPLY,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -858,7 +867,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_DIVIDE,
+                .type   = TOKEN_ASIGN_DIVIDE,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -867,7 +876,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_DIVIDE,
+                .type   = TOKEN_DIVIDE,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -879,7 +888,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 2),
-                .value_type   = TOKEN_ASIGN_MODULO,
+                .type   = TOKEN_ASIGN_MODULO,
                 .value_string = newStringL(src, 2),
             };
         default:
@@ -888,7 +897,7 @@ static struct Token isTokenSpecjalc(const char* src, const char** end) {
                 .file_name    = (char*)current_file,
                 .line_number  = current_line_number,
                 .row_string   = newStringL(src, 1),
-                .value_type   = TOKEN_MODULO,
+                .type   = TOKEN_MODULO,
                 .value_string = newStringL(src, 1),
             };
         }
@@ -963,11 +972,7 @@ void freeTokens(struct TokenList* tokens) {
 }
 
 void printToken(struct Token* token) {
-    switch (token -> value_type) {
-    case TOKEN_NONE:
-        // that wuld never hpaend.
-        break;
-    
+    switch (token -> type) {
     case TOKEN_UPPER_NAME:
         printf(
             "TOKEN_UPPER_NAME: %.*s\n",
@@ -991,7 +996,7 @@ void printToken(struct Token* token) {
         break;
     case TOKEN_AT_NAME:
         printf(
-            "TOKEN_DOT_NAME: %.*s\n", 
+            "TOKEN_AT_NAME: %.*s\n", 
             (int) token -> value_string.length,
             token -> value_string.string
         );
@@ -1004,222 +1009,14 @@ void printToken(struct Token* token) {
         );
         break;
     
-    case TOKEN_KEYWORD_IMPORT:
-        printf("TOKEN_KEYWORD_IMPORT\n");
-        break;
-    case TOKEN_KEYWORD_AS:
-        printf("TOKEN_KEYWORD_AS\n");
-        break;
-    case TOKEN_KEYWORD_TYPE:
-        printf("TOKEN_KEYWORD_TYPE\n");
-        break;
-    case TOKEN_KEYWORD_ENUM:
-        printf("TOKEN_KEYWORD_ENUM\n");
-        break;
-    case TOKEN_KEYWORD_UNION:
-        printf("TOKEN_KEYWORD_UNION\n");
-        break;
-    case TOKEN_KEYWORD_EXPORT:
-        printf("TOKEN_KEYWORD_EXPORT\n");
-        break;
-    case TOKEN_KEYWORD_EXTERNAL:
-        printf("TOKEN_KEYWORD_EXTERNAL\n");
-        break;
-    case TOKEN_KEYWORD_VAR:
-        printf("TOKEN_KEYWORD_VAR\n");
-        break;
-    case TOKEN_KEYWORD_CONST:
-        printf("TOKEN_KEYWORD_CONST\n");
-        break;
-    case TOKEN_KEYWORD_REF:
-        printf("TOKEN_KEYWORD_REF\n");
-        break;
-    case TOKEN_KEYWORD_FUNC:
-        printf("TOKEN_KEYWORD_FUNC\n");
-        break;
-    case TOKEN_KEYWORD_CFUNC:
-        printf("TOKEN_KEYWORD_CFUNC\n");
-        break;
-    case TOKEN_KEYWORD_IF:
-        printf("TOKEN_KEYWORD_IF\n");
-        break;
-    case TOKEN_KEYWORD_ELSE:
-        printf("TOKEN_KEYWORD_ELSE\n");
-        break;
-    case TOKEN_KEYWORD_SWITCH:
-        printf("TOKEN_KEYWORD_SWITCH\n");
-        break;
-    case TOKEN_KEYWORD_CASE:
-        printf("TOKEN_KEYWORD_CASE\n");
-        break;
-    case TOKEN_KEYWORD_DEFAULT:
-        printf("TOKEN_KEYWORD_DEFAULT\n");
-        break;
-    case TOKEN_KEYWORD_LOOP:
-        printf("TOKEN_KEYWORD_LOOP\n");
-        break;
-    case TOKEN_KEYWORD_BREAK:
-        printf("TOKEN_KEYWORD_BREAK\n");
-        break;
-    case TOKEN_KEYWORD_CONTINUE:
-        printf("TOKEN_KEYWORD_CONTINUE\n");
-        break;
-    case TOKEN_KEYWORD_DO:
-        printf("TOKEN_KEYWORD_DO\n");
-        break;
-    case TOKEN_KEYWORD_WHILE:
-        printf("TOKEN_KEYWORD_WHILE\n");
-        break;
-    case TOKEN_KEYWORD_FOR:
-        printf("TOKEN_KEYWORD_FOR\n");
-        break;
-    case TOKEN_KEYWORD_FOREATCH:
-        printf("TOKEN_KEYWORD_FOREATCH\n");
-        break;
-    case TOKEN_KEYWORD_REPEAD:
-        printf("TOKEN_KEYWORD_REPEAD\n");
-        break;
-    case TOKEN_KEYWORD_RETURN:
-        printf("TOKEN_KEYWORD_RETURN\n");
-        break;
-    case TOKEN_KEYWORD_TEST:
-        printf("TOKEN_KEYWORD_TEST\n");
-        break;
-    
     case TOKEN_FLOAT:
         printf("TOKEN_FLOAT: %Lg\n", token -> value_float);
         break;
     case TOKEN_INT:
         printf("TOKEN_INT: %ld\n", token -> value_int);
         break;
-    
-    case TOKEN_PARENTHESES_OPEN:
-        printf("TOKEN_PARENTHESES_OPEN\n");
-        break;
-    case TOKEN_PARENTHESES_CLOSE:
-        printf("TOKEN_PARENTHESES_CLOSE\n");
-        break;
-    case TOKEN_BRACES_OPEN:
-        printf("TOKEN_BRACES_OPEN\n");
-        break;
-    case TOKEN_BRACES_CLOSE:
-        printf("TOKEN_BRACES_CLOSE\n");
-        break;
-    case TOKEN_BRACKETS_OPEN:
-        printf("TOKEN_BRACKETS_OPEN\n");
-        break;
-    case TOKEN_BRACKETS_CLOSE:
-        printf("TOKEN_BRACKETS_CLOSE\n");
-        break;
-    
-    case TOKEN_SEMICOLON:
-        printf("TOKEN_SEMICOLON\n");
-        break;
-    case TOKEN_COLON:
-        printf("TOKEN_COLON\n");
-        break;
-    case TOKEN_COMMA:
-        printf("TOKEN_COMMA\n");
-        break;
-    
-    case TOKEN_LESS_THEN:
-        printf("TOKEN_LESS_THEN\n");
-        break;
-    case TOKEN_GREATER_THEN:
-        printf("TOKEN_GREATER_THEN\n");
-        break;
-    case TOKEN_LESS_OR_EQUAL_THEN:
-        printf("TOKEN_LESS_OR_EQUAL_THEN\n");
-        break;
-    case TOKEN_GREATER_OR_EQUAL_THEN:
-        printf("TOKEN_GREATER_OR_EQUAL_THEN\n");
-        break;
-    case TOKEN_EQUAL:
-        printf("TOKEN_EQUAL\n");
-        break;
-    case TOKEN_NOT_EQUAL:
-        printf("TOKEN_NOT_EQUAL\n");
-        break;
-    
-    case TOKEN_LOGICAL_NOT:
-        printf("TOKEN_LOGICAL_NOT\n");
-        break;
-    case TOKEN_LOGICAL_OR:
-        printf("TOKEN_LOGICAL_OR\n");
-        break;
-    case TOKEN_LOGICAL_AND:
-        printf("TOKEN_LOGICAL_AND\n");
-        break;
-    
-    case TOKEN_SHIFT_LEFT:
-        printf("TOKEN_SHIFT_LEFT\n");
-        break;
-    case TOKEN_SHIFT_RIGHT:
-        printf("TOKEN_SHIFT_RIGHT\n");
-        break;
-    
-    case TOKEN_BITWIZE_NOT:
-        printf("TOKEN_BITWIZE_NOT\n");
-        break;
-    case TOKEN_BITWIZE_OR:
-        printf("TOKEN_BITWIZE_OR\n");
-        break;
-    case TOKEN_BITWIZE_AND:
-        printf("TOKEN_BITWIZE_AND\n");
-        break;
-    
-    case TOKEN_PLUS:
-        printf("TOKEN_PLUS\n");
-        break;
-    case TOKEN_MINUS:
-        printf("TOKEN_MINUS\n");
-        break;
-    case TOKEN_MULTIPLY:
-        printf("TOKEN_MULTIPLY\n");
-        break;
-    case TOKEN_DIVIDE:
-        printf("TOKEN_DIVIDE\n");
-        break;
-    case TOKEN_MODULO:
-        printf("TOKEN_MODULO\n");
-        break;
-    
-    case TOKEN_ASIGN:
-        printf("TOKEN_ASIGN\n");
-        break;
-    
-    case TOKEN_ASIGN_SHIFT_LEFT:
-        printf("TOKEN_ASIGN_SHIFT_LEFT\n");
-        break;
-    case TOKEN_ASIGN_SHIFT_RIGHT:
-        printf("TOKEN_ASIGN_SHIFT_RIGHT\n");
-        break;
-    
-    case TOKEN_ASIGN_BITWIZE_NOT:
-        printf("TOKEN_ASIGN_BITWIZE_NOT\n");
-        break;
-    case TOKEN_ASIGN_BITWIZE_OR:
-        printf("TOKEN_ASIGN_BITWIZE_OR\n");
-        break;
-    case TOKEN_ASIGN_BITWIZE_AND:
-        printf("TOKEN_ASIGN_BITWIZE_AND\n");
-        break;
-    
-    case TOKEN_ASIGN_PLUS:
-        printf("TOKEN_ASIGN_PLUS\n");
-        break;
-    case TOKEN_ASIGN_MINUS:
-        printf("TOKEN_ASIGN_MINUS\n");
-        break;
-    case TOKEN_ASIGN_MULTIPLY:
-        printf("TOKEN_ASIGN_MULTIPLY\n");
-        break;
-    case TOKEN_ASIGN_DIVIDE:
-        printf("TOKEN_ASIGN_DIVIDE\n");
-        break;
-    case TOKEN_ASIGN_MODULO:
-        printf("TOKEN_ASIGN_MODULO\n");
-        break;
+    default:
+        printf("TOKEN %s\n", tokenType(token -> type));
     }
 }
 

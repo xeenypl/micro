@@ -5,8 +5,8 @@
 // for: size_t
 
 void* memoryAlloc(size_t size);
-void  memoryFree(void* mem);
 void* memoryRealloc(void* mem, size_t size);
+void  memoryFree(void* mem);
 
 char* memoryStringnDup(const char *str);
 char* memoryStringnLengthDup(const char *str, size_t length);
