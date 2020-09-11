@@ -1,24 +1,21 @@
+#include <ctype.h>
 #include <stdbool.h>
-// for: bool, true, false
 #include <stddef.h>
-// for: size_t
 #include <stdio.h>
-// for: printf, fprintf, stderr
 #include <stdint.h>
-// for: int64_t, uint64_t
 #include <stdlib.h>
-// for: exit, EXIT_FAILURE
+#include <string.h>
 
 #include "lexer.h"
 #include "memory.h"
 
-static size_t      current_line_number;
-static const char* current_file;
+size_t current_line_number;
+const char* current_file;
 
 static inline void errorIlligalCharacter(char character) {
     fprintf(
-        stderr, 
-        "Parsing Error %s:%ld: illigal character '%c'\n", 
+        stderr,
+        "Parsing Error %s:%ld: illigal character '%c'\n",
         current_file,
         current_line_number,
         character
@@ -28,8 +25,8 @@ static inline void errorIlligalCharacter(char character) {
 
 static inline void errorIlligalEscape(char character) {
     fprintf(
-        stderr, 
-        "Parsing Error %s:%ld: illigal escape character '%c'\n", 
+        stderr,
+        "Parsing Error %s:%ld: illigal escape character '%c'\n",
         current_file,
         current_line_number,
         character
@@ -38,51 +35,26 @@ static inline void errorIlligalEscape(char character) {
 
 static inline void errorIlligalNewLine(void) {
     fprintf(
-        stderr, 
-        "Parsing Error %s:%ld: illigal new line\n", 
-        current_file,
-        current_line_number
-    );
-}
-
-static inline void errorIlligalName(void) {
-    fprintf(
-        stderr, 
-        "Parsing Error %s:%ld: illigal name\n", 
+        stderr,
+        "Parsing Error %s:%ld: illigal new line\n",
         current_file,
         current_line_number
     );
     exit(EXIT_FAILURE);
 }
 
-static inline bool isWhiteSpace(char c) {
-    return (c == ' ') || (c == '\t') || (c == '\n');
+static inline void errorIlligalName(void) {
+    fprintf(
+        stderr,
+        "Parsing Error %s:%ld: illigal name\n",
+        current_file,
+        current_line_number
+    );
+    exit(EXIT_FAILURE);
 }
 
-static inline bool isUpperCase(char c) {
-    return ('A' <= c) && (c <= 'Z');
-}
-
-static inline bool isLowerCase(char c) {
-    return ('a' <= c) && (c <= 'z');
-}
-
-static inline bool isNumeric(char c) {
-    return ('0' <= c) && (c <= '9');
-}
-
-static inline bool isHexDigit(char c) {
-    return (('A' <= c) && (c <= 'H'))
-        || (('a' <= c) && (c <= 'h'))
-        || (('0' <= c) && (c <= '9'));
-}
-
-static inline bool isAlfaNumeric(char c) {
-    return isUpperCase(c) || isLowerCase(c) || isNumeric(c);
-}
-
-static inline void skipWhiteSpaces(const char** src) {
-    while (isWhiteSpace(**src)) {
+static inline void skipSpaces(const char** src) {
+    while (isspace(**src)) {
         if ((**src) == '\n') {
             current_line_number++;
         }
@@ -108,28 +80,10 @@ static inline void skipMultiLineComment(const char** src) {
     (*src)++;
 }
 
-static inline bool isKeyword(const char* keyword, const char* src) {
-    return (strncmp(keyword, src, strlen(keyword)) == 0)
-        && !isAlfaNumeric(*(src + strlen(keyword)));
-}
-
-static inline struct Token tokenKeyword(
-    const char* src,
-    const char** end,
-    const char* keyword
-) {
-    (*end) = src + strlen(keyword);
-    return (struct Token) {
-        .file_name   = (char*)current_file,
-        .line_number = current_line_number,
-        .row_string  = newStringL(src, strlen(keyword)),
-    };
-}
-
-static void skipComments(const char** src) {
+void skipWhiteSpaces(const char** src) {
     while (true) {
-        if (isWhiteSpace(**src)) {
-            skipWhiteSpaces(src);
+        if (isspace(**src)) {
+            skipSpaces(src);
             continue;
         }
 
@@ -145,259 +99,6 @@ static void skipComments(const char** src) {
 
         break;
     }
-}
-
-static struct Token isTokenNumber(const char* src, const char** end) {
-    uint64_t res = strtoull(src, (char**)end, 0);
-    if (((**end) == '.') || ((**end) == 'E') || ((**end) == 'e')) {
-        long double res = strtold(src, (char**)end);
-        return (struct Token) {
-            .file_name   = (char*)current_file,
-            .line_number = current_line_number,
-            .row_string  = newStringL(src, ((*end) - src)),
-            .type  = TOKEN_FLOAT,
-            .value_float = res
-        };
-    }
-    return (struct Token) {
-        .file_name   = (char*)current_file,
-        .line_number = current_line_number,
-        .row_string  = newStringL(src, ((*end) - src)),
-        .type  = TOKEN_INT,
-        .value_int   = res
-    };
-}
-
-static struct Token isTokenUpperName(char* src, const char** end) {
-    size_t length = 1; 
-    while (isAlfaNumeric(src[length])) {
-        length++;
-    }
-
-    (*end) = src + length;
-    return (struct Token) {
-        .file_name    = (char*)current_file,
-        .line_number  = current_line_number,
-        .row_string   = newStringL(src, length),
-        .type   = TOKEN_UPPER_NAME,
-        .value_string = newStringL(src, length) 
-    };
-}
-
-static struct Token isTokenLowerName(const char* src, const char** end) {
-    if (isKeyword("import", src)) {
-        struct Token res = tokenKeyword(src, end, "import");
-        res.type = TOKEN_KEYWORD_IMPORT;           // import
-        return res;
-    }  
-    
-    if (isKeyword("as", src)) {
-        struct Token res = tokenKeyword(src, end, "as");
-        res.type = TOKEN_KEYWORD_AS;               // as
-        return res;
-    }
-    
-    if (isKeyword("type", src)) {
-        struct Token res = tokenKeyword(src, end, "type");
-        res.type = TOKEN_KEYWORD_TYPE;             // type
-        return res;
-    }
-    
-    if (isKeyword("enum", src)) {
-        struct Token res = tokenKeyword(src, end, "enum");
-        res.type = TOKEN_KEYWORD_ENUM;             // enum
-        return res;
-    }
-    
-    if (isKeyword("union", src)) {
-        struct Token res = tokenKeyword(src, end, "union");
-        res.type = TOKEN_KEYWORD_UNION;            // union
-        return res;
-    }
-    
-    if (isKeyword("export", src)) {
-        struct Token res = tokenKeyword(src, end, "export");
-        res.type = TOKEN_KEYWORD_EXPORT;           // export
-        return res;
-    }
-    
-    if (isKeyword("external", src)) {
-        struct Token res = tokenKeyword(src, end, "external");
-        res.type = TOKEN_KEYWORD_EXTERNAL;         // external
-        return res;
-    }
-    
-    if (isKeyword("var", src)) {
-        struct Token res = tokenKeyword(src, end, "var");
-        res.type = TOKEN_KEYWORD_VAR;              // var
-        return res;
-    }
-    
-    if (isKeyword("const", src)) {
-        struct Token res = tokenKeyword(src, end, "const");
-        res.type = TOKEN_KEYWORD_CONST;            // const
-        return res;
-    }
-
-    if (isKeyword("ref", src)) {
-        struct Token res = tokenKeyword(src, end, "ref");
-        res.type = TOKEN_KEYWORD_REF;              // ref
-        return res;
-    }
-
-    if (isKeyword("deref", src)) {
-        struct Token res = tokenKeyword(src, end, "deref");
-        res.type = TOKEN_KEYWORD_DEREF;            // deref
-        return res;
-    }
-    
-    if (isKeyword("func", src)) {
-        struct Token res = tokenKeyword(src, end, "func");
-        res.type = TOKEN_KEYWORD_FUNC;             // func
-        return res;
-    }
-    
-    if (isKeyword("cfunc", src)) {
-        struct Token res = tokenKeyword(src, end, "cfunc");
-        res.type = TOKEN_KEYWORD_CFUNC;            // cfunc
-        return res;
-    }
-    
-    if (isKeyword("if", src)) {
-        struct Token res = tokenKeyword(src, end, "if");
-        res.type = TOKEN_KEYWORD_IF;               // if
-        return res;
-    }
-    
-    if (isKeyword("else", src)) {
-        struct Token res = tokenKeyword(src, end, "else");
-        res.type = TOKEN_KEYWORD_ELSE;             // else
-        return res;
-    }
-    
-    if (isKeyword("switch", src)) {
-        struct Token res = tokenKeyword(src, end, "switch");
-        res.type = TOKEN_KEYWORD_SWITCH;           // switch
-        return res;
-    }
-    
-    if (isKeyword("case", src)) {
-        struct Token res = tokenKeyword(src, end, "case");
-        res.type = TOKEN_KEYWORD_CASE;             // case
-        return res;
-    }
-    
-    if (isKeyword("default", src)) {
-        struct Token res = tokenKeyword(src, end, "default");
-        res.type = TOKEN_KEYWORD_DEFAULT;          // default
-        return res;
-    }
-    
-    if (isKeyword("loop", src)) {
-        struct Token res = tokenKeyword(src, end, "loop");
-        res.type = TOKEN_KEYWORD_LOOP;             // loop
-        return res;
-    }
-    
-    if (isKeyword("break", src)) {
-        struct Token res = tokenKeyword(src, end, "break");
-        res.type = TOKEN_KEYWORD_BREAK;            // break
-        return res;
-    }
-    
-    if (isKeyword("continue", src)) {
-        struct Token res = tokenKeyword(src, end, "continue");
-        res.type = TOKEN_KEYWORD_CONTINUE;         // continue
-        return res;
-    }
-    
-    if (isKeyword("do", src)) {
-        struct Token res = tokenKeyword(src, end, "do");
-        res.type = TOKEN_KEYWORD_DO;               // do
-        return res;
-    }
-    
-    if (isKeyword("while", src)) {
-        struct Token res = tokenKeyword(src, end, "while");
-        res.type = TOKEN_KEYWORD_WHILE;            // while
-        return res;
-    }
-    
-    if (isKeyword("for", src)) {
-        struct Token res = tokenKeyword(src, end, "for");
-        res.type = TOKEN_KEYWORD_FOR;              // for
-        return res;
-    }
-    
-    if (isKeyword("in", src)) {
-        struct Token res = tokenKeyword(src, end, "in");
-        res.type = TOKEN_KEYWORD_IN;               // in
-        return res;
-    }
-    
-    if (isKeyword("repead", src)) {
-        struct Token res = tokenKeyword(src, end, "repead");
-        res.type = TOKEN_KEYWORD_REPEAD;           // repead
-        return res;
-    }
-    
-    if (isKeyword("return", src)) {
-        struct Token res = tokenKeyword(src, end, "return");
-        res.type = TOKEN_KEYWORD_RETURN;           // return
-        return res;
-    }
-    
-    if (isKeyword("test", src)) {
-        struct Token res = tokenKeyword(src, end, "test");
-        res.type = TOKEN_KEYWORD_TEST;             // test
-        return res;
-    }
-
-    size_t length = 1; 
-    while (isAlfaNumeric(src[length])) {
-        length++;
-    }
-    (*end) = src + length;
-    return (struct Token) {
-        .file_name    = (char*)current_file,
-        .line_number  = current_line_number,
-        .row_string   = newStringL(src, length),
-        .type   = TOKEN_LOWER_NAME,
-        .value_string = newStringL(src, length) 
-    };
-}
-
-static struct Token isTokenDotName(const char* src, const char** end) {
-    size_t length = 1; 
-    while (isAlfaNumeric(src[length])) {
-        length++;
-    }
-    (*end) = src + length;
-    return (struct Token) {
-        .file_name    = (char*)current_file,
-        .line_number  = current_line_number,
-        .row_string   = newStringL(src, length),
-        .type   = TOKEN_DOT_NAME,
-        .value_string = newStringL(src, length) 
-    };
-}
-
-static struct Token isTokenAtName(const char* src, const char** end) {
-    if (!(isLowerCase(src[1]))) {
-        errorIlligalName();
-    }
-    size_t length = 1; 
-    while (isAlfaNumeric(src[length])) {
-        length++;
-    }
-    (*end) = src + length;
-    return (struct Token) {
-        .file_name    = (char*)current_file,
-        .line_number  = current_line_number,
-        .row_string   = newStringL(src, length),
-        .type   = TOKEN_DOT_NAME,
-        .value_string = newStringL(src, length) 
-    };
 }
 
 static char parseHexDigit(char c) {
@@ -476,556 +177,121 @@ static struct String escape(const char* str, size_t length) {
         }
     }
     return (struct String) {
-        .string = memoryStringnLengthDup(res, res_length),
+        .string = strndup(res, res_length),
         .length = res_length
     };
 }
 
-static struct Token isTokenString(const char* src, const char** end) {
+// TODO: proper implement 
+bool matchUint(const char* src, const char** end, uint64_t* result) {
+    (*result) = strtoull(src, (char**)end, 0);
+    return src != (*end);
+}
+
+bool matchFloat(const char*  src, const char** end, long double* result) {
+    (*result) = strtold(src, (char**)end);
+    return src != (*end);
+}
+
+bool matchString(const char* src, const char** end, struct String* result) {
+    skipWhiteSpaces(&src);
     if ((*src) == '"') {
-        size_t length = 1;; 
+        size_t length = 1;;
         while (!(((src[length] == '"')
-               && (src[length - 1] != '\\')) 
-              || ((src[length] == '"') 
+               && (src[length - 1] != '\\'))
+              || ((src[length] == '"')
                && (src[length - 1] == '\\')
                && (src[length - 2] == '\\')))) {
             length++;
         }
         length++;
-        *end = src + length;
-        struct String res = escape(src + 1, length - 2);
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, length),
-            .type   = TOKEN_STRING,
-            .value_string = res 
-        };
+        (*end) = src + length;
+        (*result) = escape(src + 1, length - 2);
+        return true;
     }
-    return (struct Token) { 0 };
+    return false;
 }
 
-static struct Token isTokenSpecjalc(const char* src, const char** end) {
-    switch (*src) {
-    case '(':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_PARENTHESES_OPEN,
-            .value_string = newStringL(src, 1),
-        };
-    case ')':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_PARENTHESES_CLOSE,
-            .value_string = newStringL(src, 1),
-        };
-    case '{':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_BRACES_OPEN,
-            .value_string = newStringL(src, 1),
-        };
-    case '}':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_BRACES_CLOSE,
-            .value_string = newStringL(src, 1),
-        };
-    case '[':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_BRACKETS_OPEN,
-            .value_string = newStringL(src, 1),
-        };
-    case ']':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_BRACKETS_CLOSE,
-            .value_string = newStringL(src, 1),
-        };
-    case ';':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_SEMICOLON,
-            .value_string = newStringL(src, 1),
-        };
-    case ':':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_COLON,
-            .value_string = newStringL(src, 1),
-        };
-    case ',':
-        (*end) = src + 1;
-        return (struct Token) {
-            .file_name    = (char*)current_file,
-            .line_number  = current_line_number,
-            .row_string   = newStringL(src, 1),
-            .type   = TOKEN_COMMA,
-            .value_string = newStringL(src, 1),
-        };
-    case '<':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_LESS_OR_EQUAL_THEN,
-                .value_string = newStringL(src, 2),
-            };
-        case '<':
-            switch (*(src + 2)) {
-            case '=':
-                (*end) = src + 3;
-                return (struct Token) {
-                    .file_name    = (char*)current_file,
-                    .line_number  = current_line_number,
-                    .row_string   = newStringL(src, 3),
-                    .type   = TOKEN_ASIGN_SHIFT_LEFT,
-                    .value_string = newStringL(src, 3),
-                };
-            default:
-                (*end) = src + 2;
-                return (struct Token) {
-                    .file_name    = (char*)current_file,
-                    .line_number  = current_line_number,
-                    .row_string   = newStringL(src, 1),
-                    .type   = TOKEN_SHIFT_LEFT,
-                    .value_string = newStringL(src, 1),
-                };
-            }
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_CHEVRONS_OPEN,
-                .value_string = newStringL(src, 1),
-            };
+bool matchKeyword(const char* src, const char** end, const char*  str) {
+    skipWhiteSpaces(&src);
+    size_t length = strlen(str);
+    if (strncmp(src, str, length) == 0 && !isalnum(src[length])) {
+        if (end != NULL) {
+            (*end) = src + length;
         }
-    case '>':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_GREATER_OR_EQUAL_THEN,
-                .value_string = newStringL(src, 2),
-            };
-        case '>':
-            switch (*(src + 2)) {
-            case '=':
-                (*end) = src + 3;
-                return (struct Token) {
-                    .file_name    = (char*)current_file,
-                    .line_number  = current_line_number,
-                    .row_string   = newStringL(src, 3),
-                    .type   = TOKEN_ASIGN_SHIFT_RIGHT,
-                    .value_string = newStringL(src, 3),
-                };
-            default:
-                (*end) = src + 2;
-                return (struct Token) {
-                    .file_name    = (char*)current_file,
-                    .line_number  = current_line_number,
-                    .row_string   = newStringL(src, 1),
-                    .type   = TOKEN_SHIFT_RIGHT,
-                    .value_string = newStringL(src, 1),
-                };
-            }
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_CHEVRONS_CLOSE,
-                .value_string = newStringL(src, 1),
-            };
-        }
-
-    case '=':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_EQUAL,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_ASIGN,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '!':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_NOT_EQUAL,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_LOGICAL_NOT,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '~':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_BITWIZE_NOT,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_BITWIZE_NOT,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '|':
-        switch (*(src + 1)) {
-        case '|':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_LOGICAL_OR,
-                .value_string = newStringL(src, 2),
-            };
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_BITWIZE_OR,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_BITWIZE_OR,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '&':
-        switch (*(src + 1)) {
-        case '&':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_LOGICAL_AND,
-                .value_string = newStringL(src, 2),
-            };
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_BITWIZE_AND,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_BITWIZE_AND,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '+':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_PLUS,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_PLUS,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '-':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_MINUS,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_MINUS,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '*':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_MULTIPLY,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_MULTIPLY,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '/':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_DIVIDE,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_DIVIDE,
-                .value_string = newStringL(src, 1),
-            };
-        }
-    case '%':
-        switch (*(src + 1)) {
-        case '=':
-            (*end) = src + 2;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 2),
-                .type   = TOKEN_ASIGN_MODULO,
-                .value_string = newStringL(src, 2),
-            };
-        default:
-            (*end) = src + 1;
-            return (struct Token) {
-                .file_name    = (char*)current_file,
-                .line_number  = current_line_number,
-                .row_string   = newStringL(src, 1),
-                .type   = TOKEN_MODULO,
-                .value_string = newStringL(src, 1),
-            };
-        }
+        return true;
     }
+    return false;
+} 
 
-    errorIlligalCharacter(*src);
-    // becouse: warning: control reaches end of non-void function
-    return (struct Token) { 0 }; 
+bool matchUpperName(const char* src, const char** end, struct String* result) {
+    skipWhiteSpaces(&src);
+    if (isupper(*src)) {
+        size_t length = 1;
+        while (isalnum(src[length])) {
+            length++;
+        }
+        if (end != NULL) {
+            (*end) = src + length;
+        }
+        if (result != NULL) {
+            (*result) = newStringL(src, length);
+        }
+        return true;
+    }
+    return false;
 }
 
-static void appendToken(struct TokenList **end_of_tokens, struct Token new) {
-    (*end_of_tokens) -> token = new;
-    (*end_of_tokens) -> next = memoryAlloc(sizeof(struct TokenList));
-    (*end_of_tokens) = (*end_of_tokens) -> next;
+bool matchLowerName(const char* src, const char** end, struct String* result) {
+    skipWhiteSpaces(&src);
+    if (islower(*src)) {
+        size_t length = 1;
+        while (isalnum(src[length])) {
+            length++;
+        }
+        if (end != NULL) {
+            (*end) = src + length;
+        }
+        if (result != NULL) {
+            (*result) = newStringL(src, length);
+        }
+        return true;
+    }
+    return false;
 }
 
-struct TokenList* getTokens(const char* src, const char* file_name) {
-    current_line_number = 1;
-    current_file = file_name;
-    struct TokenList* res = memoryAlloc(sizeof(struct TokenList));
-    struct TokenList* current = res;
-    while (true) {
-        skipComments(&src);
-        if ((*src) == 0) {
-            break;
+bool matchDotName(const char* src, const char** end, struct String* result) {
+    skipWhiteSpaces(&src);
+    if ((*src) == '.') {
+        size_t length = 1;
+        while (isalnum(src[length])) {
+            length++;
         }
-
-        switch (*src) {
-        case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G': 
-        case 'H': case 'I': case 'J': case 'K': case 'L': case 'M': case 'N': 
-        case 'O': case 'P': case 'Q': case 'R': case 'S': case 'T': case 'U':
-        case 'V': case 'W': case 'X': case 'Y': case 'Z':
-            appendToken(&current, isTokenUpperName((char*)src, &src));
-            break;
-        case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case 'g': 
-        case 'h': case 'i': case 'j': case 'k': case 'l': case 'm': case 'n': 
-        case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
-        case 'v': case 'w': case 'x': case 'y': case 'z':
-            appendToken(&current, isTokenLowerName((char*)src, &src));
-            break;
-        case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
-            appendToken(&current, isTokenNumber((char*)src, &src));
-            break;
-        case '.':
-            appendToken(&current, isTokenDotName((char*)src, &src));
-            break;
-        case '@':
-            appendToken(&current, isTokenAtName((char*)src, &src));
-            break;
-        case '"':
-            appendToken(&current, isTokenString((char*)src, &src));
-            break;
-        default:
-            appendToken(&current, isTokenSpecjalc((char*)src, &src));
-            break;
+        if (end != NULL) {
+            (*end) = src + length;
         }
+        if (result != NULL) {
+            (*result) = newStringL(src, length);
+        }
+        return true;
     }
-    return res;
+    return false;
 }
 
-void freeTokens(struct TokenList* tokens) {
-    while (true) {
-        if (tokens -> next == NULL) {
-            memoryFree(tokens);
-            break;
+bool matchAtName(const char* src, const char** end, struct String* result) {
+    skipWhiteSpaces(&src);
+    if ((*src) == '@') {
+        size_t length = 1;
+        while (isalnum(src[length])) {
+            length++;
         }
-        struct TokenList* old = tokens;
-        tokens = tokens -> next;
-        memoryFree(old);
-    }
-}
-
-void printToken(struct Token* token) {
-    switch (token -> type) {
-    case TOKEN_UPPER_NAME:
-        printf(
-            "TOKEN_UPPER_NAME: %.*s\n",
-            (int) token -> value_string.length,
-            token -> value_string.string
-        );
-        break;
-    case TOKEN_LOWER_NAME:
-        printf(
-            "TOKEN_LOWER_NAME: %.*s\n", 
-            (int) token -> value_string.length,
-            token -> value_string.string
-        );
-        break;
-    case TOKEN_DOT_NAME:
-        printf(
-            "TOKEN_DOT_NAME: %.*s\n", 
-            (int) token -> value_string.length,
-            token -> value_string.string
-        );
-        break;
-    case TOKEN_AT_NAME:
-        printf(
-            "TOKEN_AT_NAME: %.*s\n", 
-            (int) token -> value_string.length,
-            token -> value_string.string
-        );
-        break;
-    case TOKEN_STRING:
-        printf(
-            "TOKEN_STRING: \"%.*s\"\n", 
-            (int) token -> value_string.length,
-            token -> value_string.string
-        );
-        break;
-    
-    case TOKEN_FLOAT:
-        printf("TOKEN_FLOAT: %Lg\n", token -> value_float);
-        break;
-    case TOKEN_INT:
-        printf("TOKEN_INT: %ld\n", token -> value_int);
-        break;
-    default:
-        printf("TOKEN %s\n", tokenType(token -> type));
-    }
-}
-
-void printTokens(struct TokenList* tokens) {
-    while (true) {
-        printToken(&tokens -> token);
-        if (tokens -> next == NULL) {
-            break;
+        if (end != NULL) {
+            (*end) = src + length;
         }
-        tokens = tokens -> next;
+        if (result != NULL) {
+            (*result) = newStringL(src, length);
+        }
+        return true;
     }
+    return false;
 }

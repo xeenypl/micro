@@ -7,10 +7,7 @@
 
 void compile(const char* path) {
     char* src = readFile(path);
-    struct TokenList* tokens = getTokens(src, path);
-//    printTokens(tokens);
-    struct AST* ast = parse(tokens);
+    struct AST* ast = parse(src, path);
     printAST(stdout, ast);
-    freeTokens(tokens);
     memoryFree(src);
 }

@@ -3,6 +3,6 @@
 
 #include "lexer.h"
 
-struct AST* parse(struct TokenList* tokens);
+struct AST* parse(const char* src, const char* file_name);
 
 #endif

@@ -72,31 +72,11 @@ struct EnumFildList {
     struct EnumFildList* next;
 };
 
-enum TypeDeclFildType {
-    TYPE_FILD_NONE,
-    TYPE_FILD_FILD,
-    TYPE_FILD_ENUM,
-    TYPE_FILD_UNION,
-};
-
-struct TypeDeclFild {
-    struct String         name;
-    enum TypeDeclFildType type;
-    union {
-        struct TypeFildList* _union;
-        struct Type          _type;
-        struct EnumFildList* _enum;
-    };
-};
-
-struct TypeDeclFildList {
-    struct TypeDeclFild      fild;
-    struct TypeDeclFildList* next;
-};
 
 enum TypeDeclType {
     TYPE_TYPE,
     TYPE_ENUM,
+    TYPE_UNION,
     TYPE_STRUCT,
 };
 
@@ -105,9 +85,10 @@ struct TypeDecl {
     struct TypeHeader header;
     enum TypeDeclType type;
     union {
-        struct Type              _type;
-        struct TypeDeclFildList* _struct;
-        struct EnumFildList*     _enum;
+        struct Type          _type;
+        struct TypeFildList* _struct;
+        struct TypeFildList* _union;
+        struct EnumFildList* _enum;
     };
 };
 
@@ -512,10 +493,6 @@ static inline void appendTypeParams(
 );
 static inline void appendPath(struct Path** path, struct String name);
 static inline void addImport(struct AST** ast, struct Import import);
-static inline void appendTypeDeclFildList(
-    struct TypeDeclFildList** type_decl_fild,
-    struct TypeDeclFild fild
-); 
 static inline void addTest(struct AST** ast, struct Test test);
 static inline void addType(struct AST** ast, struct TypeDecl type);
 static inline void addFunc(struct AST** ast, struct FuncDecl func);
@@ -1064,15 +1041,6 @@ static inline void appendPath(struct Path** path, struct String name) {
     (*path) -> name = name;
     (*path) -> next = memoryAlloc(sizeof(struct Path));
     (*path) = (*path) -> next;
-}
-
-static inline void appendTypeDeclFildList(
-    struct TypeDeclFildList** type_decl_fild,
-    struct TypeDeclFild fild
-) {
-    (*type_decl_fild) -> fild = fild;
-    (*type_decl_fild) -> next = memoryAlloc(sizeof(struct TypeDeclFildList));
-    (*type_decl_fild) = (*type_decl_fild) -> next;
 }
 
 static inline void addImport(struct AST** ast, struct Import import) {

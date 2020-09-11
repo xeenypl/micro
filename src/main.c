@@ -1,9 +1,6 @@
 #include <stdio.h>
-// for fprintf, stderr
 #include <stdlib.h>
-// for: exit, EXIT_SUCCESS, EXIT_FAILURE
 #include <getopt.h>
-// for: struct option, getopt_long, optarg, optind
 
 #include "args.h"
 #include "compile.h"

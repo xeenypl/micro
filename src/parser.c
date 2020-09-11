@@ -16,100 +16,65 @@ static inline void errorEndOfToken(void) {
     exit(EXIT_FAILURE);
 }
 
-static inline void errorUnexpextedToken(struct Token token) {
+static inline void errorUnexpextedToken(const char* stream) {
     fprintf(
         stderr,
-        "Syntax error %s:%ld unexpected token %s\n",
-        token.file_name,
-        token.line_number,
-        tokenType(token.type)
+        "Syntax error %s:%ld\n",
+        // TODO: make better error mesage
+        current_file,
+        current_line_number
     );
     exit(EXIT_FAILURE);
 }
 
-static inline void nextToken(struct TokenList** stream) {
-    if ((*stream) -> next -> token.type == TOKEN_NONE) {
-        errorEndOfToken();
+static inline void assertSyntax(bool test, const char* stream) {
+    if (!test) {
+        errorUnexpextedToken(stream);
     }
-    (*stream) = (*stream) -> next;
 }
 
-static inline bool tokenIs(struct TokenList** stream, enum TokenType type) {
-    return (*stream) -> token.type == type;
-}
-
-static inline bool matchToken(struct TokenList** stream, enum TokenType type) {
-    if ((*stream) -> token.type == type) {
-        nextToken(stream);
-        return true;
-    }
-    return false;
-}
-
-static inline struct Token* eatToken(struct TokenList** stream) {
-    if ((*stream) -> next == NULL) {
-        errorEndOfToken();
-    }
-    struct TokenList *now = (*stream);
-    (*stream) = (*stream) -> next;
-    return &(now -> token);
-}
-
-static inline struct Token* acceptToken(
-    struct TokenList** stream, 
-    enum TokenType type
-) {
-    if ((*stream) -> token.type == type) {
-        return eatToken(stream);
-    }
-    errorUnexpextedToken((*stream) -> token);
-    return NULL;
-}
-
-static struct Path* parsePathTail(struct TokenList** stream) {
+static struct Path* parsePathTail(const char** stream) {
     struct Path* res = memoryAlloc(sizeof(struct Path));
     struct Path* now = res;
-    while (tokenIs(stream, TOKEN_DOT_NAME)) {
-        struct Token* tok = eatToken(stream);
-        appendPath(&now, tok -> value_string);
+    struct String name;
+    while (matchDotName(*stream, stream, &name)) {
+        appendPath(&now, name);
     }
     return res;
 }
 
-static struct Path* parsePath(struct TokenList** stream) {
-    if (tokenIs(stream, TOKEN_UPPER_NAME)
-     || tokenIs(stream, TOKEN_LOWER_NAME)) {
-        struct Path* res = memoryAlloc(sizeof(struct Path));
-        struct Token* tok = eatToken(stream);
-        res -> name = tok -> value_string;
-        if (tokenIs(stream, TOKEN_DOT_NAME)) {
+static struct Path* parsePath(const char** stream) {
+    struct Path* res = memoryAlloc(sizeof(struct Path));
+    struct String name;
+    if (matchUpperName(*stream, stream, &name)
+     || matchLowerName(*stream, stream, &name)) {
+        res -> name = name;
+        if (matchDotName(*stream, NULL, NULL)) {
             res -> next = parsePathTail(stream);
         }
         return res;
     }
-    errorUnexpextedToken((*stream) -> token);
+    errorUnexpextedToken(*stream);
     return NULL;
 }
 
-static struct Import parseImport(struct TokenList** stream) {
-    acceptToken(stream, TOKEN_KEYWORD_IMPORT);
+static struct Import parseImport(const char** stream) {
     struct Path* res_path;
-    if (tokenIs(stream, TOKEN_UPPER_NAME)
-     || tokenIs(stream, TOKEN_LOWER_NAME)) {
+    if (matchUpperName(*stream, NULL, NULL)
+     || matchLowerName(*stream, NULL, NULL)) {
         res_path = parsePath(stream);
-    } else if (tokenIs(stream, TOKEN_DOT_NAME)) {
+    } else if (matchDotName(*stream, NULL, NULL)) {
         res_path = parsePathTail(stream);
     } else {
-        errorUnexpextedToken((*stream) -> token);
+        errorUnexpextedToken(*stream);
     }
     bool res_is_rename = false;
     struct String res_as;
-    if (matchToken(stream, TOKEN_KEYWORD_AS)) {
-        struct Token* tok = acceptToken(stream, TOKEN_LOWER_NAME);
+    if (matchKeyword(*stream, stream, "as")) {
+        assertSyntax(matchLowerName(*stream, stream, &res_as), *stream);
         res_is_rename = true;
-        res_as = tok -> value_string;
     }
-    acceptToken(stream, TOKEN_SEMICOLON);
+    assertSyntax(matchChar(*stream, stream, ';'), *stream);
     return (struct Import) {
         .is_rename = res_is_rename,
         .as        = res_as,
@@ -117,168 +82,133 @@ static struct Import parseImport(struct TokenList** stream) {
     };
 }
 
-static struct TypeHeader parseTypeHeader(struct TokenList** stream) {
-    struct Token* name = acceptToken(stream, TOKEN_UPPER_NAME);
+static struct TypeHeader parseTypeHeader(const char** stream) {
+    struct String name;
+    assertSyntax(matchUpperName(*stream, stream, &name), *stream);
     struct TypeParams* params = NULL;
-    if (matchToken(stream, TOKEN_CHEVRONS_OPEN)) {
+    if (matchChar(*stream, stream, '<')) {
         params = memoryAlloc(sizeof(struct TypeParams));
         struct TypeParams* now = params;
         do {
-            struct Token* name = acceptToken(stream, TOKEN_UPPER_NAME);
-            appendTypeParams(&now, name -> value_string);
-        } while (matchToken(stream, TOKEN_COMMA));
-        acceptToken(stream, TOKEN_CHEVRONS_CLOSE);
+            struct String param;
+            assertSyntax(matchUpperName(*stream, stream, &param), *stream);
+            appendTypeParams(&now, param);
+        } while (matchChar(*stream, stream, ','));
+        assertSyntax(matchChar(*stream, stream, '>'), *stream);
     }
     return (struct TypeHeader) {
-        .name   = name -> value_string,
+        .name   = name,
         .params = params
     };
 }
 
-static struct Type parseType(struct TokenList** stream) {
-    bool is_ref = matchToken(stream, TOKEN_KEYWORD_REF);
-    struct Token* name = acceptToken(stream, TOKEN_UPPER_NAME);
+static struct Type parseType(const char** stream) {
+    bool is_ref = matchKeyword(*stream, stream, "ref");
+    struct String name;
+    assertSyntax(matchUpperName(*stream, stream, &name), *stream);
     struct TypeArgs* args = NULL;
-    if (matchToken(stream, TOKEN_CHEVRONS_OPEN)) {
+    if (matchChar(*stream, stream, '<')) {
         args = memoryAlloc(sizeof(struct TypeParams));
         struct TypeArgs* now = args;
         do {
             struct Type arg = parseType(stream);
             appendTypeArgs(&now, arg);
-        } while (matchToken(stream, TOKEN_COMMA));
-        acceptToken(stream, TOKEN_CHEVRONS_CLOSE);
+        } while (matchChar(*stream, stream, ','));
+        assertSyntax(matchChar(*stream, stream, '>'), *stream);
     }
     return (struct Type) {
         .is_ref = is_ref,
-        .name   = name -> value_string,
+        .name   = name,
         .args   = args
     };
 }
 
-static struct TypeFild parseTypeFild(struct TokenList** stream) {
-    struct Token* name = acceptToken(stream, TOKEN_LOWER_NAME);
-    acceptToken(stream, TOKEN_COLON);
+static struct TypeFild parseTypeFild(const char** stream) {
+    struct String name;
+    assertSyntax(matchLowerName(*stream, stream, &name), *stream);
+    assertSyntax(matchChar(*stream, stream, ':'), *stream);
     struct Type type = parseType(stream);
-    acceptToken(stream, TOKEN_SEMICOLON);
+    assertSyntax(matchChar(*stream, stream, ';'), *stream);
     return (struct TypeFild) {
-        .name = name -> value_string, 
+        .name = name, 
         .type = type
     };
 }
 
-static struct TypeFildList* paresTypeFildList(struct TokenList** stream) {
-    acceptToken(stream, TOKEN_BRACES_OPEN);
+static struct TypeFildList* paresTypeFildList(const char** stream) {
+    assertSyntax(matchChar(*stream, stream, '{'), *stream);
     struct TypeFildList* res = memoryAlloc(sizeof(struct TypeFildList));
     struct TypeFildList* now = res;
     do {
         struct TypeFild fild = parseTypeFild(stream);
         appendTypeFildList(&now, fild);
-    } while (!matchToken(stream, TOKEN_BRACES_CLOSE));
+    } while (!matchChar(*stream, stream, '}'));
     return res;
 }
 
-static struct EnumFildList* parseEnumFildList(struct TokenList** stream) {
-    acceptToken(stream, TOKEN_KEYWORD_ENUM);
-    acceptToken(stream, TOKEN_BRACES_OPEN);
+static struct EnumFildList* parseEnumFildList(const char** stream) {
+    assertSyntax(matchChar(*stream, stream, '{'), *stream);
     struct EnumFildList* res = memoryAlloc(sizeof(struct EnumFildList));
     struct EnumFildList* now = res;
     do {
-        struct Token* name = acceptToken(stream, TOKEN_LOWER_NAME);
-        if (matchToken(stream, TOKEN_COLON)) {
+        struct String name;
+        assertSyntax(matchLowerName(*stream, stream, &name), *stream);
+        if (matchChar(*stream, stream, ':')) {
             struct Type type = parseType(stream);
-            acceptToken(stream, TOKEN_SEMICOLON);
             appendEnumFildTyped(
                 &now, 
                 (struct TypeFild) {
-                    .name = name -> value_string, 
+                    .name = name, 
                     .type = type
                 }
             );
         } else {
-            acceptToken(stream, TOKEN_SEMICOLON);
-            appendEnumFildUntyped(&now, name -> value_string);
+            appendEnumFildUntyped(&now, name);
         }
-    } while (!matchToken(stream, TOKEN_BRACES_CLOSE));
+        assertSyntax(matchChar(*stream, stream, ';'), *stream);
+    } while (!matchChar(*stream, stream, '}'));
     return res;
 }
 
-static struct TypeFildList* parseUnion(struct TokenList** stream) {
-    acceptToken(stream, TOKEN_KEYWORD_UNION);
-    return paresTypeFildList(stream);
-}
-
-static struct TypeDeclFild parseTypeDeclFild(struct TokenList** stream) {
-    struct Token* name = acceptToken(stream, TOKEN_LOWER_NAME);
-    acceptToken(stream, TOKEN_COLON);
-    if (tokenIs(stream, TOKEN_KEYWORD_ENUM)) {
-        struct EnumFildList* res = parseEnumFildList(stream);
-        acceptToken(stream, TOKEN_SEMICOLON);
-        return (struct TypeDeclFild) {
-            .name  = name -> value_string,
-            .type  = TYPE_FILD_ENUM,
-            ._enum = res
-        };
-    }
-    if (tokenIs(stream, TOKEN_KEYWORD_UNION)) {
-        struct TypeFildList* res = parseUnion(stream);
-        acceptToken(stream, TOKEN_SEMICOLON);
-        return (struct TypeDeclFild) {
-            .name   = name -> value_string,
-            .type   = TYPE_FILD_UNION,
-            ._union = res
-        };
-    }
-    struct Type type = parseType(stream);
-    acceptToken(stream, TOKEN_SEMICOLON);
-    return (struct TypeDeclFild) {
-        .name  = name -> value_string,
-        .type  = TYPE_FILD_ENUM,
-        ._type = type
-    };
-}
-
-static struct TypeDeclFildList* paresTypeDeclFildList(
-    struct TokenList** stream
-) {
-    acceptToken(stream, TOKEN_BRACES_OPEN);
-    struct TypeDeclFildList* res = memoryAlloc(sizeof(struct TypeDeclFildList));
-    struct TypeDeclFildList* now = res;
-    do {
-        struct TypeDeclFild fild = parseTypeDeclFild(stream);
-        appendTypeDeclFildList(&now, fild);
-    } while (!matchToken(stream, TOKEN_BRACES_CLOSE));
-    return res;
-}
-
-static struct TypeDecl parseTypeDecl(struct TokenList** stream, bool exported) {
-    acceptToken(stream, TOKEN_KEYWORD_TYPE);
+static struct TypeDecl parseTypeDecl(const char** stream, bool exported) {
     struct TypeHeader header = parseTypeHeader(stream);
 
-    if (matchToken(stream, TOKEN_ASIGN)) {
+    if (matchChar(*stream, stream, '=')) {
         struct Type res = parseType(stream);
-        acceptToken(stream, TOKEN_SEMICOLON);
+        assertSyntax(matchChar(*stream, stream, ';'), *stream);
         return (struct TypeDecl) {
             .is_exported = exported,
-            .header       = header,
+            .header      = header,
             .type        = TYPE_TYPE,
             ._type       = res
         };
     } 
 
-    if (tokenIs(stream, TOKEN_KEYWORD_ENUM)) {
+    if (matchKeyword(*stream, stream, "enum")) {
         struct EnumFildList* res = parseEnumFildList(stream);
-        acceptToken(stream, TOKEN_SEMICOLON);
+        assertSyntax(matchChar(*stream, stream, ';'), *stream);
         return (struct TypeDecl) {
             .is_exported = exported,
-            .header       = header,
+            .header      = header,
             .type        = TYPE_ENUM,
             ._enum       = res
         };
     }
 
-    if (tokenIs(stream, TOKEN_BRACES_OPEN)) {
-        struct TypeDeclFildList* res =  paresTypeDeclFildList(stream);
-        acceptToken(stream, TOKEN_SEMICOLON);
+    if (matchKeyword(*stream, stream, "union")) {
+        struct TypeFildList* res = paresTypeFildList(stream);
+        assertSyntax(matchChar(*stream, stream, ';'), *stream);
+        return (struct TypeDecl) {
+            .is_exported = exported,
+            .header      = header,
+            .type        = TYPE_UNION,
+            ._union      = res
+        };
+    }
+
+    if (matchChar(*stream, NULL, '{')) {
+        struct TypeFildList* res = paresTypeFildList(stream);
+        assertSyntax(matchChar(*stream, stream, ';'), *stream);
         return (struct TypeDecl) {
             .is_exported = exported,
             .header      = header,
@@ -287,51 +217,35 @@ static struct TypeDecl parseTypeDecl(struct TokenList** stream, bool exported) {
         };
     }
 
-    errorUnexpextedToken((*stream) -> token);
+    errorUnexpextedToken(*stream);
     return (struct TypeDecl) { 0 };
 }
 
-struct AST* parse(struct TokenList* stream) {
+struct AST* parse(const char* stream, const char* file_name) {
+    current_file = file_name;
+    current_line_number = 1;
     struct AST* res = memoryAlloc(sizeof(struct AST));
     struct AST* now = res;
-    while (stream -> token.type != TOKEN_NONE) {
-        switch (stream -> token.type) {
-        case TOKEN_KEYWORD_EXPORT:
-            nextToken(&stream);
-            switch (stream -> token.type) {
-            case TOKEN_KEYWORD_TYPE:
-                addType(&now, parseTypeDecl(&stream, true));
-                break;
-            case TOKEN_KEYWORD_FUNC:
-                break;
-            default:
-                errorUnexpextedToken(stream -> token);
-            }
-            break;
-        case TOKEN_KEYWORD_EXTERNAL:
-            nextToken(&stream);
-            switch (stream -> token.type) {
-            case TOKEN_KEYWORD_FUNC:
-                break;
-            default:
-                errorUnexpextedToken(stream -> token);
-            }
-            break;
-        case TOKEN_KEYWORD_IMPORT:
+
+    while ((*stream) != 0) {
+        skipWhiteSpaces(&stream);
+        if (matchKeyword(stream, &stream, "import")) {
             addImport(&now, parseImport(&stream));
-            break;
-        case TOKEN_KEYWORD_TYPE:
+            continue;
+        }
+
+        if (matchKeyword(stream, &stream, "type")) {
             addType(&now, parseTypeDecl(&stream, false));
-            break;
-        case TOKEN_KEYWORD_FUNC:
-            break;
-        case TOKEN_KEYWORD_CFUNC:
-            break;
-        case TOKEN_KEYWORD_TEST:
-            break;
-        default:
-            errorUnexpextedToken(stream -> token);
+            continue;
+        }
+
+        if (matchKeyword(stream, &stream, "export")) { 
+            if (matchKeyword(stream, &stream, "type")) {
+                addType(&now, parseTypeDecl(&stream, true));
+                continue;
+            }
         }
     }
+
     return res;
 }
