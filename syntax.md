@@ -13,30 +13,19 @@ import UpperName;
 import UpperName.Name.name;
 ```
 
-## enum
-```
-enum {
-    fildName;
-    fildName: Type;
-} name
-```
-
-## union
-```
-union {
-    fildName: Type;
-} name
-```
-
 ## type
 ```
 type Type <Type, Type> {
     fildName: Type;
 }
-type Type <Type, Type> enum {
-    fildName;
-    fildName: Type;
+type type <type, type> union {
+    fildname: type;
 }
+type type <type, type> enum {
+    fildname;
+    fildname: type;
+}
+type Type <Type> = Type <Type>
 ```
 
 ## funcion
@@ -142,4 +131,25 @@ return <expretion>;
 ## casting
 ```
 <expretion> as Int
+```
+# build in types
+## signed number
+```
+Int Int8 Int16 Int32 Int64
+```
+## unsigned number
+```
+Uint Uint8 Uint16 Uint32 Uint64
+```
+## flouting point
+```
+Float Float32 Float64 Float128
+```
+## special
+```
+Bool
+Str
+Etc
+None
+Func <ReturnType, ArgsType>
 ```
